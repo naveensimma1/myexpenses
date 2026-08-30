@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpendWise — Personal Finance Tracker</title>
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#718096;--primary:#6c5ce7;
+  --primary2:#8e7dff;--green:#16a085;--red:#e74c3c;--orange:#f39c12;--blue:#2980b9;
+  --shadow:0 12px 35px rgba(35,45,80,.09);--radius:20px;
+}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:linear-gradient(135deg,#f7f8ff,#eef7ff);color:var(--text)}
+button,input,select{font:inherit} button{cursor:pointer;border:0}
+.app{display:flex;min-height:100vh}.sidebar{width:245px;background:linear-gradient(180deg,#19152f,#272050);color:white;padding:24px 16px;position:sticky;top:0;height:100vh}
+.logo{font-size:23px;font-weight:800;padding:8px 12px 28px}.logo span{color:#a89cff}.nav button{width:100%;background:transparent;color:#d9d5f4;text-align:left;padding:13px 14px;border-radius:12px;margin:3px 0;font-weight:650}.nav button:hover,.nav button.active{background:rgba(255,255,255,.12);color:#fff}.side-note{position:absolute;bottom:25px;left:20px;right:20px;font-size:11px;color:#a9a4c8;line-height:1.5}
+.main{flex:1;padding:28px;max-width:1600px;margin:auto;width:100%}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.title h1{margin:0;font-size:30px}.title p{margin:5px 0 0;color:var(--muted)}.date{background:white;padding:10px 14px;border-radius:12px;box-shadow:var(--shadow);font-size:13px;color:#555}
+.view{display:none}.view.active{display:block}.grid{display:grid;gap:18px}.stats{grid-template-columns:repeat(4,1fr)}.two{grid-template-columns:1.35fr .65fr}.three{grid-template-columns:repeat(3,1fr)}
+.card{background:rgba(255,255,255,.93);border:1px solid rgba(120,130,160,.09);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}.stat{position:relative;overflow:hidden}.stat:after{content:"";position:absolute;width:90px;height:90px;border-radius:50%;right:-30px;top:-30px;background:rgba(108,92,231,.08)}.stat .label{color:var(--muted);font-size:13px;font-weight:650}.stat .value{font-size:27px;font-weight:850;margin:8px 0}.stat .small{font-size:12px;color:var(--muted)}.green{color:var(--green)}.red{color:var(--red)}.purple{color:var(--primary)}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.section-head h2,.section-head h3{margin:0}.btn{background:linear-gradient(135deg,var(--primary),var(--primary2));color:white;padding:11px 15px;border-radius:11px;font-weight:750;box-shadow:0 7px 18px rgba(108,92,231,.22)}.btn.secondary{background:#eef0ff;color:var(--primary);box-shadow:none}.btn.danger{background:#fff0ef;color:var(--red);box-shadow:none}.btn.sm{padding:7px 10px;font-size:12px}
+.progress{height:8px;background:#edf0f6;border-radius:20px;overflow:hidden}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--primary),#55c6ff);border-radius:20px}
+.bar-chart{height:210px;display:flex;align-items:end;gap:10px;padding:18px 4px 0}.bar{flex:1;min-width:10px;background:linear-gradient(180deg,#8d7dff,#c2baff);border-radius:8px 8px 3px 3px;position:relative}.bar span{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--muted)}.bar b{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;color:#666;white-space:nowrap}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px;border-bottom:1px solid #edf0f5;font-size:13px}th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em}.badge{padding:5px 8px;border-radius:20px;font-size:11px;font-weight:750;background:#f1efff;color:var(--primary)}.badge.paid{background:#eafaf4;color:var(--green)}.badge.pending{background:#fff6e5;color:#b9770e}
+.form{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}.form .full{grid-column:1/-1}label{font-size:12px;color:#647084;font-weight:700;display:block;margin-bottom:6px}input,select{width:100%;padding:11px 12px;border:1px solid #e2e6ef;border-radius:11px;background:#fff;outline:none;color:var(--text)}input:focus,select:focus{border-color:#9c91ff;box-shadow:0 0 0 3px #eeeaff}.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:15px}
+.cards{grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}.bank-card{padding:22px;color:white;border-radius:19px;min-height:170px;position:relative;overflow:hidden}.bank-card:after{content:"";position:absolute;width:170px;height:170px;border-radius:50%;right:-55px;top:-65px;background:rgba(255,255,255,.12)}.bank-card.purplebg{background:linear-gradient(135deg,#42318e,#8a78ed)}.bank-card.bluebg{background:linear-gradient(135deg,#126c9c,#4bb8e8)}.bank-card.darkbg{background:linear-gradient(135deg,#263238,#596b75)}.bank-card .chip{width:38px;height:27px;background:#f4d58c;border-radius:6px;margin:10px 0 18px}.card-number{font-size:18px;letter-spacing:2px}.card-meta{display:flex;justify-content:space-between;margin-top:17px;font-size:11px;opacity:.85}.card-name{font-weight:800;font-size:14px;margin-top:3px}.mini{font-size:11px;color:#dce4ff}.empty{padding:30px;text-align:center;color:var(--muted)}
+.category-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:12px}.cat{padding:16px;border-radius:16px;background:#f8f9fd;border:1px solid #edf0f6}.cat .emoji{font-size:27px}.cat strong{display:block;margin-top:8px}.cat small{color:var(--muted)}
+.modal{display:none;position:fixed;inset:0;background:rgba(20,24,40,.48);z-index:20;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.modal-box{background:#fff;border-radius:22px;padding:24px;width:min(620px,100%);max-height:90vh;overflow:auto}.close{float:right;background:#f2f3f7;border-radius:50%;width:34px;height:34px;font-size:18px}.toast{position:fixed;right:22px;bottom:22px;background:#182033;color:#fff;padding:13px 17px;border-radius:12px;box-shadow:var(--shadow);display:none;z-index:50}.toast.show{display:block}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px}.filters input,.filters select{max-width:220px}.search{flex:1;min-width:180px}
+@media(max-width:950px){.sidebar{width:75px;padding:18px 10px}.logo{font-size:0}.logo:after{content:"S";font-size:25px}.nav button{font-size:0;text-align:center}.nav button:first-letter{font-size:20px}.side-note{display:none}.stats{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
+@media(max-width:620px){.main{padding:16px}.stats,.three{grid-template-columns:1fr}.form{grid-template-columns:1fr}.top{align-items:flex-start;gap:10px}.date{display:none}.title h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div id="lockScreen" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#19152f,#42318e 55%,#6c5ce7);display:flex;align-items:center;justify-content:center;padding:20px;color:#fff">
+  <div style="width:min(450px,100%);background:rgba(255,255,255,.98);color:#172033;border-radius:24px;padding:30px;box-shadow:0 25px 70px rgba(0,0,0,.28)">
+    <div style="font-size:42px;text-align:center">☁️🔐</div>
+    <h1 id="lockTitle" style="text-align:center;margin:8px 0">SpendWise Cloud Vault</h1>
+    <p id="lockText" style="text-align:center;color:#718096;font-size:13px;line-height:1.5">Sign in to sync your encrypted finance vault across laptop and phone.</p>
+    <label>Email</label>
+    <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" required>
+    <div style="height:10px"></div>
+    <label>Password</label>
+    <input id="authPassword" type="password" minlength="8" autocomplete="current-password" placeholder="Your admin password" required>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button id="loginBtn" class="btn" style="flex:1" onclick="cloudLogin()">🔓 Login</button>
+      <button id="signupBtn" class="btn secondary" style="flex:1" onclick="cloudSignup()">Create Account</button>
+    </div>
+    <button id="resetVaultBtn" style="display:none;width:100%;margin-top:10px;background:transparent;color:#e74c3c;padding:10px" onclick="forgotPassword()">Forgot password / reset vault</button>
+    <div id="lockError" style="display:none;margin-top:13px;padding:10px;border-radius:10px;background:#fff0ef;color:#c0392b;font-size:12px;text-align:center"></div>
+    <p style="font-size:10px;color:#8a94a6;text-align:center;margin:18px 0 0;line-height:1.5">Your publishable key is safe to use in a browser. Your finance records are additionally encrypted client-side before being stored in Supabase. Never put a Supabase secret/service-role key in this HTML.</p>
+  </div>
+</div>
+
+<div class="app">
+<aside class="sidebar">
+  <div class="logo">Spend<span>Wise</span> 💳</div>
+  <div class="nav">
+    <button class="active" onclick="showView('dashboard',this)">🏠 Dashboard</button>
+    <button onclick="showView('expenses',this)">💸 Expenses</button>
+    <button onclick="showView('credit',this)">💳 Credit Cards</button>
+    <button onclick="showView('debit',this)">🏦 Debit Cards</button>
+    <button onclick="showView('categories',this)">🧩 Categories</button>
+    <button onclick="showView('reports',this)">📊 Reports</button>
+    <button onclick="requireAdminForMode().then(ok=>ok&&showView('settings',document.querySelectorAll('.nav button')[6]))">⚙️ Settings</button>
+  </div>
+  <div class="side-note">Your data is stored locally in this browser.<br><br>Tip: export a backup regularly.</div>
+</aside>
+
+<main class="main">
+<div id="modeBanner" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:12px;background:#eef0ff;color:#5146b8;font-size:12px;font-weight:750"></div>
+<div class="top"><div class="title"><h1 id="pageTitle">Good morning 👋</h1><p id="pageSub">Your money, organized beautifully.</p></div><div style="display:flex;align-items:center;gap:8px"><button class="btn secondary sm" onclick="requireAdminForMode()">🛡️ Admin Mode</button><div class="date" id="today"></div></div></div>
+
+<section id="dashboard" class="view active">
+  <div class="grid stats">
+    <div class="card stat"><div class="label">TOTAL SPENT</div><div class="value red" id="totalSpent">₹0</div><div class="small">All recorded expenses</div></div>
+    <div class="card stat"><div class="label">THIS MONTH</div><div class="value purple" id="monthSpent">₹0</div><div class="small" id="monthCount">0 transactions</div></div>
+    <div class="card stat"><div class="label">PAID</div><div class="value green" id="paidAmount">₹0</div><div class="small">Marked as paid</div></div>
+    <div class="card stat"><div class="label">PENDING</div><div class="value" id="pendingAmount">₹0</div><div class="small">Needs attention</div></div>
+  </div>
+  <div style="height:18px"></div>
+  <div class="grid two">
+    <div class="card"><div class="section-head"><h3>Spending trend</h3><select id="trendPeriod" onchange="renderDashboard()"><option value="month">This month</option><option value="all">All time</option></select></div><div class="bar-chart" id="chart"></div></div>
+    <div class="card"><div class="section-head"><h3>Quick Add</h3></div><p style="color:var(--muted);font-size:13px">Record a purchase in seconds.</p><button class="btn" onclick="openExpense()">＋ Add Expense</button><div style="height:12px"></div><button class="btn secondary" onclick="openCard('credit')">＋ Add Credit Card</button></div>
+  </div>
+  <div style="height:18px"></div>
+  <div class="grid two">
+    <div class="card"><div class="section-head"><h3>Recent expenses</h3><button class="btn secondary sm" onclick="showView('expenses',document.querySelectorAll('.nav button')[1])">View all</button></div><div id="recent"></div></div>
+    <div class="card"><div class="section-head"><h3>Top spending</h3></div><div id="topCategories"></div></div>
+  </div>
+</section>
+
+<section id="expenses" class="view">
+  <div class="card"><div class="section-head"><h2>Expenses</h2><button class="btn" onclick="openExpense()">＋ Add Expense</button></div>
+    <div class="filters"><input class="search" id="expenseSearch" oninput="renderExpenses()" placeholder="Search Flipkart, Swiggy, shopping..."><select id="expenseCat" onchange="renderExpenses()"><option value="">All categories</option></select><select id="expenseStatus" onchange="renderExpenses()"><option value="">All status</option><option value="Paid">Paid</option><option value="Pending">Pending</option></select></div>
+    <div id="expenseTable"></div>
+  </div>
+</section>
+
+<section id="credit" class="view"><div class="section-head"><h2>Credit Cards</h2><button class="btn" onclick="openCard('credit')">＋ Add Credit Card</button></div><div class="grid cards" id="creditCards"></div></section>
+<section id="debit" class="view"><div class="section-head"><h2>Debit Cards & Accounts</h2><button class="btn" onclick="openCard('debit')">＋ Add Debit Card</button></div><div class="grid cards" id="debitCards"></div></section>
+
+<section id="categories" class="view"><div class="card"><div class="section-head"><h2>Expense categories</h2><button class="btn" onclick="openCategory()">＋ New Category</button></div><p style="color:var(--muted)">Organize spending by the things you actually buy.</p><div class="category-grid" id="categoryGrid"></div></div></section>
+
+<section id="reports" class="view">
+  <div class="grid three">
+    <div class="card"><div class="label" style="color:var(--muted)">AVERAGE TRANSACTION</div><div class="value" id="avgSpend">₹0</div></div>
+    <div class="card"><div class="label" style="color:var(--muted)">BIGGEST EXPENSE</div><div class="value red" id="biggestSpend">₹0</div></div>
+    <div class="card"><div class="label" style="color:var(--muted)">TRANSACTIONS</div><div class="value purple" id="txCount">0</div></div>
+  </div><div style="height:18px"></div>
+  <div class="card"><div class="section-head"><h3>Category breakdown</h3></div><div id="reportCategories"></div></div>
+</section>
+
+<section id="settings" class="view">
+ <div class="card">
+   <div class="section-head"><div><h2>Security Center</h2><p style="color:var(--muted);margin:6px 0 0">Admin controls, privacy and encrypted backup.</p></div><span class="badge paid">🔐 Vault Protected</span></div>
+
+   <div class="grid three">
+     <div class="card" style="box-shadow:none;background:#f8f9fd"><h3 style="margin-top:0">Admin Password</h3><p style="font-size:12px;color:#718096">Change the password used to unlock your encrypted vault.</p><button class="btn sm" onclick="openPasswordChange()">Change Password</button></div>
+     <div class="card" style="box-shadow:none;background:#f8f9fd"><h3 style="margin-top:0">Auto Lock</h3><p style="font-size:12px;color:#718096">Lock the app after inactivity.</p><select id="autoLockSelect" onchange="setAutoLock(this.value)"><option value="0">Never</option><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60">60 minutes</option></select></div>
+     <div class="card" style="box-shadow:none;background:#f8f9fd"><h3 style="margin-top:0">Current Mode</h3><p style="font-size:12px;color:#718096">Switch between everyday entry and full admin controls.</p><button class="btn secondary sm" onclick="switchMode('admin')">Switch Mode</button></div>
+   </div>
+
+   <hr style="border:0;border-top:1px solid #eee;margin:24px 0">
+   <h3>Privacy Controls</h3>
+   <div class="grid three">
+     <div class="card" style="box-shadow:none;background:#f8f9fd"><b>Card Numbers</b><p style="font-size:12px;color:#718096">Full card numbers require a second password check.</p><button class="btn secondary sm" onclick="setPrivacy('card')">Manage</button></div>
+     <div class="card" style="box-shadow:none;background:#f8f9fd"><b>CVV</b><p style="font-size:12px;color:#718096">CVV is always hidden until explicitly unlocked.</p><button class="btn secondary sm" onclick="setPrivacy('cvv')">Manage</button></div>
+     <div class="card" style="box-shadow:none;background:#f8f9fd"><b>Session</b><p style="font-size:12px;color:#718096">Lock immediately when you're finished.</p><button class="btn secondary sm" onclick="lockNow()">🔒 Lock Now</button></div>
+   </div>
+
+   <hr style="border:0;border-top:1px solid #eee;margin:24px 0">
+   <h3>Encrypted Backup & Restore</h3>
+   <p style="font-size:13px;color:#667">Backups contain encrypted vault data. They do not contain a readable copy of your card or expense information.</p>
+   <div class="actions" style="justify-content:flex-start"><button class="btn" onclick="exportData()">⬇ Export Encrypted Backup</button><button class="btn secondary" onclick="importFile.click()">⬆ Import Encrypted Backup</button></div>
+   <input type="file" id="importFile" accept=".json" hidden onchange="importData(event)">
+
+   <hr style="border:0;border-top:1px solid #eee;margin:24px 0">
+   <p style="font-size:13px;color:#667">Security note: this is a personal static tracker, not a banking app. Data is encrypted at rest in this browser. For maximum safety, consider not storing CVV at all.</p>
+   <button class="btn danger" onclick="clearData()">Delete ALL CLOUD VAULT DATA</button>
+ </div>
+</section>
+</main>
+</div>
+
+<div class="modal" id="expenseModal"><div class="modal-box"><button class="close" onclick="closeModal('expenseModal')">×</button><h2 id="expenseModalTitle">Add Expense</h2>
+<form id="expenseForm" class="form" onsubmit="saveExpense(event)">
+<input type="hidden" id="expenseId">
+<div><label>Date</label><input type="date" id="eDate" required></div>
+<div><label>Amount (₹)</label><input type="number" id="eAmount" min="0" step="0.01" required></div>
+<div><label>What did you spend on?</label><input id="eMerchant" placeholder="e.g. Amazon, Swiggy, movie..." required></div>
+<div><label>Category</label><select id="eCategory"></select></div>
+<div><label>Where / Child section</label><select id="eSubcategory"></select></div>
+<div><label>Payment method</label><select id="eMethod"><option>Credit Card</option><option>Debit Card</option><option>Cash</option><option>UPI</option><option>Bank Transfer</option></select></div>
+<div><label>Frequency</label><select id="eFrequency"><option>One-time</option><option>Daily</option><option>Weekly</option><option>Monthly</option></select></div>
+<div><label>Status</label><select id="eStatus"><option>Paid</option><option>Pending</option></select></div>
+<div class="full"><label>Notes</label><input id="eNotes" placeholder="Optional note"></div>
+<div class="full actions"><button type="button" class="btn secondary" onclick="closeModal('expenseModal')">Cancel</button><button class="btn">Save Expense</button></div>
+</form></div></div>
+
+<div class="modal" id="cardModal"><div class="modal-box"><button class="close" onclick="closeModal('cardModal')">×</button><h2 id="cardModalTitle">Add Card</h2>
+<form id="cardForm" class="form" onsubmit="saveCard(event)">
+<input type="hidden" id="cardId"><input type="hidden" id="cardType">
+<div><label>Card / Bank Name</label><input id="cName" placeholder="HDFC, ICICI, SBI..." required></div>
+<div><label>Cardholder Name</label><input id="cHolder" placeholder="Your name"></div>
+<div class="full"><label>Card Number</label><input id="cNumber" inputmode="numeric" maxlength="19" placeholder="1234 5678 9012 3456" required></div>
+<div><label>CVV</label><input id="cCvv" inputmode="numeric" maxlength="4" placeholder="•••"></div>
+<div><label>Expiry</label><input id="cExpiry" type="month" required></div>
+<div><label>Credit Limit / Account Label</label><input id="cLimit" type="number" min="0" placeholder="Optional"></div>
+<div class="full actions"><button type="button" class="btn secondary" onclick="closeModal('cardModal')">Cancel</button><button class="btn">Save Card</button></div>
+</form></div></div>
+
+<div class="modal" id="categoryModal"><div class="modal-box"><button class="close" onclick="closeModal('categoryModal')">×</button><h2>New Category</h2>
+<form class="form" onsubmit="saveCategory(event)"><div><label>Name</label><input id="newCat" required placeholder="e.g. Travel"></div><div><label>Emoji</label><input id="newEmoji" value="✨" maxlength="2"></div><div class="full"><label>Child sections (comma separated)</label><input id="newSubs" placeholder="Flights, Hotels, Cabs, Metro"></div><div class="full actions"><button type="button" class="btn secondary" onclick="closeModal('categoryModal')">Cancel</button><button class="btn">Add Category</button></div></form></div></div>
+<div class="modal" id="passwordModal"><div class="modal-box"><button class="close" onclick="closeModal('passwordModal')">×</button><h2>Change Admin Password</h2><p style="font-size:12px;color:#718096">Your existing vault will be re-encrypted with the new password.</p><form class="form" onsubmit="changePassword(event)"><div class="full"><label>Current password</label><input id="oldPassword" type="password" required></div><div><label>New password</label><input id="newPassword" type="password" minlength="8" required></div><div><label>Confirm new password</label><input id="newPassword2" type="password" minlength="8" required></div><div class="full actions"><button type="button" class="btn secondary" onclick="closeModal('passwordModal')">Cancel</button><button class="btn">Change Password</button></div></form></div></div>
+
+<div class="modal" id="detailModal"><div class="modal-box"><button class="close" onclick="closeModal('detailModal')">×</button><h2>🔓 Protected Card Details</h2><p style="font-size:12px;color:#718096">Enter the admin password to temporarily reveal sensitive details.</p><form onsubmit="unlockDetails(event)" class="form"><div class="full"><label>Admin password</label><input id="detailPassword" type="password" required></div><div class="full actions"><button type="button" class="btn secondary" onclick="closeModal('detailModal')">Cancel</button><button class="btn">Reveal Details</button></div></form></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://zgpnbwipafisuloqrxle.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_xXTQbLDZtbYSHeE1r79WRQ_Ck1Tfhcm";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const defaultCategories=[
+ {name:"Shopping",emoji:"🛍️",subs:["Amazon","Flipkart","Meesho","Myntra","Clothing","Electronics","Other Shopping"]},
+ {name:"Food & Dining",emoji:"🍔",subs:["Swiggy","Zomato","Dine-out","Cafes","Takeaway","Snacks","Other Food"]},
+ {name:"Groceries",emoji:"🛒",subs:["Zepto","Blinkit","BigBasket","DMart","Vegetables","Fruits","Other Groceries"]},
+ {name:"Entertainment",emoji:"🎬",subs:["District","Movies","OTT","Games","Events","Subscriptions"]},
+ {name:"Bills & Recharges",emoji:"📱",subs:["Mobile Recharge","Internet Bill","Electricity","Gas","DTH","Other Bills"]},
+ {name:"Transport",emoji:"🚗",subs:["Uber","Ola","Rapido","Fuel","Metro","Bus","Parking"]},
+ {name:"Travel",emoji:"✈️",subs:["Flights","Hotels","Cabs","Train","Bus","Travel Food"]},
+ {name:"Health",emoji:"💊",subs:["Pharmacy","Doctor","Tests","Fitness","Personal Care"]},
+ {name:"Home",emoji:"🏠",subs:["Rent","Repairs","Appliances","Furniture","Utilities"]},
+ {name:"Education",emoji:"📚",subs:["Courses","Books","Fees","Learning Apps"]},
+ {name:"Family",emoji:"👨‍👩‍👧",subs:["Gifts","Family Shopping","Celebrations","Kids"]},
+ {name:"Other",emoji:"✨",subs:["Miscellaneous","Cash","Other"]}
+];
+let data={expenses:[],cards:[],categories:defaultCategories};
+let vaultKey=null;
+let sessionUnlocked=false;
+let currentUser=null;
+let vaultSalt=null;
+
+const $=id=>document.getElementById(id);
+const money=n=>"₹"+Number(n||0).toLocaleString("en-IN",{maximumFractionDigits:2});
+
+function bytesToB64(bytes){let s="";bytes.forEach(b=>s+=String.fromCharCode(b));return btoa(s)}
+function b64ToBytes(s){let bin=atob(s),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a}
+async function deriveKey(password,salt){
+  const material=await crypto.subtle.importKey("raw",new TextEncoder().encode(password),"PBKDF2",false,["deriveKey"]);
+  return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:250000,hash:"SHA-256"},material,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);
+}
+async function encryptData(){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const encoded=new TextEncoder().encode(JSON.stringify(data));
+  const cipher=await crypto.subtle.encrypt({name:"AES-GCM",iv},vaultKey,encoded);
+  return {v:1,iv:bytesToB64(iv),data:bytesToB64(new Uint8Array(cipher))};
+}
+async function decryptBlob(password,salt,blob){
+  const key=await deriveKey(password,salt);
+  const plain=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64ToBytes(blob.iv)},key,b64ToBytes(blob.data));
+  return {key,obj:JSON.parse(new TextDecoder().decode(plain))};
+}
+async function getVaultRow(){
+  if(!currentUser)return null;
+  const {data:row,error}=await sb.from("finance_vaults").select("user_id,salt,vault,updated_at").eq("user_id",currentUser.id).maybeSingle();
+  if(error)throw error;
+  return row;
+}
+async function save(){
+  if(!sessionUnlocked||!vaultKey||!currentUser)return;
+  const vault=await encryptData();
+  const {error}=await sb.from("finance_vaults").upsert({user_id:currentUser.id,salt:vaultSalt,vault,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+  if(error){console.error(error);toast("Cloud save failed — check connection");}
+}
+async function hasCloudVault(){
+  const row=await getVaultRow();
+  return !!row;
+}
+function showLockError(msg){let e=$("lockError");e.textContent=msg;e.style.display="block"}
+function hideLockError(){$("lockError").style.display="none"}
+
+async function cloudLogin(){
+  hideLockError();
+  const email=$("authEmail").value.trim(),password=$("authPassword").value;
+  if(!email||!password)return showLockError("Enter your email and password.");
+  try{
+    const {data:auth,error}=await sb.auth.signInWithPassword({email,password});
+    if(error)throw error;
+    currentUser=auth.user;
+    const row=await getVaultRow();
+    if(!row){
+      vaultSalt=bytesToB64(crypto.getRandomValues(new Uint8Array(16)));
+      vaultKey=await deriveKey(password,b64ToBytes(vaultSalt));
+      data={expenses:[],cards:[],categories:defaultCategories};
+      sessionUnlocked=true;
+      await save();
+    }else{
+      vaultSalt=row.salt;
+      const result=await decryptBlob(password,b64ToBytes(row.salt),row.vault);
+      vaultKey=result.key;data=result.obj;
+      if(!data.categories||!data.categories.length)data.categories=defaultCategories;
+      sessionUnlocked=true;
+    }
+    enterApp();
+  }catch(e){console.error(e);showLockError(e.message?.includes("Invalid login")?"Incorrect email or password.":e.message||"Unable to sign in.")}
+}
+async function cloudSignup(){
+  hideLockError();
+  const email=$("authEmail").value.trim(),password=$("authPassword").value;
+  if(!email||!password)return showLockError("Enter an email and password.");
+  if(password.length<8)return showLockError("Password must be at least 8 characters.");
+  try{
+    const {data:auth,error}=await sb.auth.signUp({email,password});
+    if(error)throw error;
+    if(!auth.session){
+      showLockError("Account created. Check your email, confirm it, then return here and Login.");
+      return;
+    }
+    currentUser=auth.user;
+    vaultSalt=bytesToB64(crypto.getRandomValues(new Uint8Array(16)));
+    vaultKey=await deriveKey(password,b64ToBytes(vaultSalt));
+    data={expenses:[],cards:[],categories:defaultCategories};
+    sessionUnlocked=true;await save();enterApp();
+  }catch(e){showLockError(e.message||"Unable to create account.")}
+}
+function enterApp(){
+  $("lockScreen").style.display="none";
+  appMode="normal";
+  switchMode("normal");
+  $("autoLockSelect").value=String(getAutoLock());
+  startAutoLock();
+  startRealtimeSync();
+  renderAll();
+}
+async function forgotPassword(){
+  if(!currentUser){
+    return alert("Login on a device where your account is already authenticated, then use the Reset Vault option.");
+  }
+  if(confirm("This permanently deletes your cloud vault data. Your Supabase account remains. Continue?")){
+    const {error}=await sb.from("finance_vaults").delete().eq("user_id",currentUser.id);
+    if(error)return alert("Could not reset the vault: "+error.message);
+    await sb.auth.signOut();location.reload();
+  }
+}
+async function initCloud(){
+  const {data:session}=await sb.auth.getSession();
+  currentUser=session.session?.user||null;
+  if(currentUser)$("resetVaultBtn").style.display="block";
+}
+function toast(t){let x=$("toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),2200)}
+function showView(id,btn){document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));if(btn)btn.classList.add("active");const names={dashboard:["Good morning 👋","Your money, organized beautifully."],expenses:["Expenses","Track every rupee and every purchase."],credit:["Credit Cards","Manage cards and monitor spending."],debit:["Debit Cards & Accounts","Keep your payment methods organized."],categories:["Categories","Your spending, broken down into useful sections."],reports:["Reports","Simple insights into your spending habits."],settings:["Settings & Backup","Protect and manage your local data."]};$("pageTitle").textContent=names[id][0];$("pageSub").textContent=names[id][1];renderAll()}
+$("today").textContent=new Date().toLocaleDateString("en-IN",{weekday:"short",day:"2-digit",month:"short",year:"numeric"});
+
+
+let appMode="normal";
+let detailUnlockUntil=0;
+let detailCardId=null;
+let autoLockTimer=null;
+let lastActivity=Date.now();
+
+function getAutoLock(){return +(localStorage.getItem("spendwiseAutoLock")||"10")}
+function setAutoLock(v){localStorage.setItem("spendwiseAutoLock",String(v));startAutoLock();toast(v==="0"?"Auto-lock disabled":`Auto-lock set to ${v} minutes`)}
+function startRealtimeSync(){
+  if(!currentUser)return;
+  if(window.spendwiseChannel){sb.removeChannel(window.spendwiseChannel)}
+  window.spendwiseChannel=sb.channel("spendwise-vault-"+currentUser.id)
+    .on("postgres_changes",{event:"UPDATE",schema:"public",table:"finance_vaults",filter:"user_id=eq."+currentUser.id},async payload=>{
+      if(!sessionUnlocked||!vaultKey)return;
+      try{
+        const row=payload.new;
+        const plain=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64ToBytes(row.vault.iv)},vaultKey,b64ToBytes(row.vault.data));
+        const incoming=JSON.parse(new TextDecoder().decode(plain));
+        data=incoming;if(data.categories?.length===0)data.categories=defaultCategories;
+        renderAll();toast("Synced from another device ✓");
+      }catch(e){console.warn("Sync update could not be decrypted",e)}
+    }).subscribe();
+}
+function startAutoLock(){
+  clearInterval(autoLockTimer);
+  let mins=getAutoLock();
+  if(!sessionUnlocked||!mins)return;
+  autoLockTimer=setInterval(()=>{if(Date.now()-lastActivity>=mins*60000)lockNow()},10000);
+}
+["click","keydown","mousemove","touchstart"].forEach(ev=>document.addEventListener(ev,()=>{lastActivity=Date.now()}));
+function switchMode(mode){
+  appMode=mode;
+  $("modeBanner").style.display="block";
+  $("modeBanner").textContent=mode==="admin"?"🛡️ ADMIN MODE — full card management, security and backup controls are available.":"🧾 ENTRY MODE — expense tracking is available; sensitive card details remain protected.";
+  document.querySelectorAll(".nav button").forEach((b,i)=>{b.style.display=(mode==="normal" && i>=2)?"none":""});
+  if(mode==="normal" && document.querySelector(".view.active").id!=="dashboard")showView("dashboard",document.querySelector(".nav button"));
+  toast(mode==="admin"?"Admin Mode enabled":"Normal Expense Entry Mode enabled");
+}
+async function requireAdminForMode(){
+  let p=prompt("Enter admin password to enable Admin Mode:");
+  if(!p)return false;
+  try{let r=await decryptVault(p);vaultKey=r.key;data=r.obj;appMode="admin";switchMode("admin");return true}catch(e){alert("Incorrect password.");return false}
+}
+function openPasswordChange(){$("passwordModal").classList.add("show")}
+async function changePassword(ev){
+  ev.preventDefault();
+  let oldP=$("oldPassword").value,newP=$("newPassword").value,newP2=$("newPassword2").value;
+  if(newP.length<8)return alert("New password must be at least 8 characters.");
+  if(newP!==newP2)return alert("New passwords do not match.");
+  try{
+    // Verify current password against the encrypted vault first.
+    const row=await getVaultRow();
+    if(!row)throw Error("No vault");
+    const old=await decryptBlob(oldP,b64ToBytes(row.salt),row.vault);
+    const {error:authErr}=await sb.auth.signInWithPassword({email:currentUser.email,password:oldP});
+    if(authErr)throw authErr;
+    // Re-encrypt the existing data with the new password and new salt.
+    const newSalt=crypto.getRandomValues(new Uint8Array(16));
+    vaultKey=await deriveKey(newP,newSalt);
+    vaultSalt=bytesToB64(newSalt);
+    await save();
+    // Change Supabase Auth password so both layers use the same admin password.
+    const {error}=await sb.auth.updateUser({password:newP});
+    if(error)throw error;
+    closeModal("passwordModal");
+    $("oldPassword").value=$("newPassword").value=$("newPassword2").value="";
+    toast("Admin password changed 🔐");
+  }catch(e){alert("Password change failed. Your old password may be incorrect.")}
+}
+function setPrivacy(kind){
+  if(kind==="card")toast("Full card numbers are protected by a second password check.");
+  else toast("CVV is always hidden and only revealed after password verification.");
+}
+function requestCardDetails(id){
+  detailCardId=id;
+  $("detailPassword").value="";
+  $("detailModal").classList.add("show");
+}
+async function unlockDetails(ev){
+  ev.preventDefault();
+  try{
+    const p=$("detailPassword").value;
+    const row=await getVaultRow();
+    if(!row)throw Error();
+    const r=await decryptBlob(p,b64ToBytes(row.salt),row.vault);
+    const {error}=await sb.auth.signInWithPassword({email:currentUser.email,password:p});
+    if(error)throw error;
+    let c=r.obj.cards.find(x=>x.id===detailCardId);
+    if(!c)throw Error();
+    detailUnlockUntil=Date.now()+120000;
+    closeModal("detailModal");showSensitiveCard(c);
+  }catch(e){alert("Incorrect admin password.")}
+}
+function showSensitiveCard(c){
+  let old=document.getElementById("sensitiveCardModal");if(old)old.remove();
+  let d=document.createElement("div");d.className="modal show";d.id="sensitiveCardModal";
+  d.innerHTML=`<div class="modal-box"><button class="close" onclick="closeSensitive()">×</button><h2>🔓 ${esc(c.name)}</h2><div class="grid two">
+  <div class="card" style="box-shadow:none;background:#f8f9fd"><label>Card Number</label><strong style="font-size:20px;letter-spacing:2px;word-break:break-all">${esc(c.number)}</strong></div>
+  <div class="card" style="box-shadow:none;background:#f8f9fd"><label>CVV</label><strong style="font-size:22px;letter-spacing:4px">${esc(c.cvv||"Not saved")}</strong></div>
+  <div class="card" style="box-shadow:none;background:#f8f9fd"><label>Expiry</label><strong>${esc(c.expiry)}</strong></div>
+  <div class="card" style="box-shadow:none;background:#f8f9fd"><label>Holder</label><strong>${esc(c.holder||"—")}</strong></div>
+  </div><p style="font-size:11px;color:#718096;margin-top:18px">This window will automatically close after 2 minutes.</p></div>`;
+  document.body.appendChild(d);setTimeout(()=>{if(document.getElementById("sensitiveCardModal"))closeSensitive()},120000)
+}
+function closeSensitive(){let x=document.getElementById("sensitiveCardModal");if(x)x.remove()}
+function openExpense(id=null){$("expenseForm").reset();$("expenseId").value=id||"";$("eDate").value=new Date().toISOString().slice(0,10);fillCategories();$("expenseModalTitle").textContent=id?"Edit Expense":"Add Expense";if(id){let e=data.expenses.find(x=>x.id===id);if(e){$("eDate").value=e.date;$("eAmount").value=e.amount;$("eMerchant").value=e.merchant;$("eCategory").value=e.category;updateSubs();$("eSubcategory").value=e.subcategory||"";$("eMethod").value=e.method;$("eFrequency").value=e.frequency;$("eStatus").value=e.status;$("eNotes").value=e.notes||""}}$("expenseModal").classList.add("show")}
+function fillCategories(){let s=$("eCategory");s.innerHTML=data.categories.map(c=>`<option>${esc(c.name)}</option>`).join("");updateSubs()}
+function updateSubs(){let c=data.categories.find(x=>x.name===$("eCategory").value);$("eSubcategory").innerHTML=(c?.subs||[]).map(x=>`<option>${esc(x)}</option>`).join("")}
+$("eCategory").addEventListener("change",updateSubs);
+function saveExpense(ev){ev.preventDefault();let id=$("expenseId").value;let obj={id:id||Date.now().toString(),date:$("eDate").value,amount:+$("eAmount").value,merchant:$("eMerchant").value.trim(),category:$("eCategory").value,subcategory:$("eSubcategory").value,method:$("eMethod").value,frequency:$("eFrequency").value,status:$("eStatus").value,notes:$("eNotes").value.trim()};if(id){let i=data.expenses.findIndex(x=>x.id===id);data.expenses[i]=obj}else data.expenses.unshift(obj);save();closeModal("expenseModal");renderAll();toast(id?"Expense updated":"Expense added ✓")}
+function deleteExpense(id){if(confirm("Delete this expense?")){data.expenses=data.expenses.filter(x=>x.id!==id);save();renderAll();toast("Expense deleted")}}
+function openCard(type,id=null){if(appMode!=="admin"){requireAdminForMode();return}$("cardForm").reset();$("cardId").value=id||"";$("cardType").value=type;$("cardModalTitle").textContent=(id?"Edit ":"Add ")+(type==="credit"?"Credit Card":"Debit Card");if(id){let c=data.cards.find(x=>x.id===id);if(c){$("cName").value=c.name;$("cHolder").value=c.holder||"";$("cNumber").value=c.number;$("cCvv").value=c.cvv||"";$("cExpiry").value=c.expiry;$("cLimit").value=c.limit||""}}$("cardModal").classList.add("show")}
+function saveCard(ev){ev.preventDefault();let id=$("cardId").value,obj={id:id||Date.now().toString(),type:$("cardType").value,name:$("cName").value.trim(),holder:$("cHolder").value.trim(),number:$("cNumber").value.replace(/\s/g,""),cvv:$("cCvv").value,expiry:$("cExpiry").value,limit:+$("cLimit").value||0};if(id){let i=data.cards.findIndex(x=>x.id===id);data.cards[i]=obj}else data.cards.push(obj);save();closeModal("cardModal");renderAll();toast(id?"Card updated":"Card added ✓")}
+function deleteCard(id){if(confirm("Remove this card?")){data.cards=data.cards.filter(x=>x.id!==id);save();renderAll()}}
+function openCategory(){$("categoryModal").classList.add("show")}
+function saveCategory(ev){ev.preventDefault();let n=$("newCat").value.trim(),s=$("newSubs").value.split(",").map(x=>x.trim()).filter(Boolean);data.categories.push({name:n,emoji:$("newEmoji").value||"✨",subs:s.length?s:["Other"]});save();closeModal("categoryModal");renderAll();toast("Category added ✓")}
+function closeModal(id){$(id).classList.remove("show")}
+
+function renderDashboard(){
+ let ex=data.expenses,total=ex.reduce((a,e)=>a+e.amount,0),now=new Date(),ms=now.getMonth(),ys=now.getFullYear();
+ let month=ex.filter(e=>{let d=new Date(e.date);return d.getMonth()===ms&&d.getFullYear()===ys});
+ $("totalSpent").textContent=money(total);$("monthSpent").textContent=money(month.reduce((a,e)=>a+e.amount,0));$("monthCount").textContent=month.length+" transactions";$("paidAmount").textContent=money(ex.filter(e=>e.status==="Paid").reduce((a,e)=>a+e.amount,0));$("pendingAmount").textContent=money(ex.filter(e=>e.status==="Pending").reduce((a,e)=>a+e.amount,0));
+ let days=Array.from({length:7},(_,i)=>{let d=new Date();d.setDate(d.getDate()-(6-i));return d}),max=1;
+ let vals=days.map(d=>ex.filter(e=>new Date(e.date).toDateString()===d.toDateString()).reduce((a,e)=>a+e.amount,0));max=Math.max(...vals,1);
+ $("chart").innerHTML=vals.map((v,i)=>`<div class="bar" style="height:${Math.max(8,v/max*155)}px"><b>${v?money(v):""}</b><span>${days[i].toLocaleDateString("en-IN",{weekday:"short"})}</span></div>`).join("");
+ $("recent").innerHTML=ex.slice(0,6).map(e=>`<div style="display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid #eee"><div><b>${esc(e.merchant)}</b><div style="font-size:11px;color:#8791a3">${esc(e.category)} · ${esc(e.subcategory)}</div></div><strong>${money(e.amount)}</strong></div>`).join("")||'<div class="empty">No expenses yet.</div>';
+ let cat={};ex.forEach(e=>cat[e.category]=(cat[e.category]||0)+e.amount);let arr=Object.entries(cat).sort((a,b)=>b[1]-a[1]).slice(0,5),mx=arr[0]?.[1]||1;
+ $("topCategories").innerHTML=arr.map(([k,v])=>`<div style="margin:14px 0"><div style="display:flex;justify-content:space-between;font-size:13px"><b>${esc(k)}</b><span>${money(v)}</span></div><div class="progress" style="margin-top:6px"><i style="width:${v/mx*100}%"></i></div></div>`).join("")||'<div class="empty">Add expenses to see insights.</div>';
+}
+function renderExpenses(){let q=($("expenseSearch").value||"").toLowerCase(),cat=$("expenseCat").value,status=$("expenseStatus").value;let ex=data.expenses.filter(e=>(!q||[e.merchant,e.category,e.subcategory,e.notes].join(" ").toLowerCase().includes(q))&&(!cat||e.category===cat)&&(!status||e.status===status));$("expenseTable").innerHTML=ex.length?`<div style="overflow:auto"><table><thead><tr><th>Date</th><th>Merchant</th><th>Category</th><th>Payment</th><th>Frequency</th><th>Status</th><th>Amount</th><th></th></tr></thead><tbody>${ex.map(e=>`<tr><td>${e.date}</td><td><b>${esc(e.merchant)}</b><div style="font-size:10px;color:#899">${esc(e.subcategory)}</div></td><td>${esc(e.category)}</td><td>${esc(e.method)}</td><td>${esc(e.frequency)}</td><td><span class="badge ${e.status==="Paid"?"paid":"pending"}">${e.status}</span></td><td><b>${money(e.amount)}</b></td><td><button class="btn secondary sm" onclick="openExpense('${e.id}')">Edit</button> <button class="btn danger sm" onclick="deleteExpense('${e.id}')">×</button></td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">No matching expenses.</div>'}
+function renderCards(type){let arr=data.cards.filter(c=>c.type===type),el=$(type+"Cards");el.innerHTML=arr.length?arr.map((c,i)=>`<div class="bank-card ${type==="credit"?(i%2?"bluebg":"purplebg"):"darkbg"}"><div class="mini">${type==="credit"?"CREDIT CARD":"DEBIT CARD"}</div><div class="chip"></div><div class="card-number">${mask(c.number)}</div><div class="card-meta"><span>${esc(c.holder||"CARDHOLDER")}<br><span class="card-name">${esc(c.name)}</span></span><span>VALID THRU<br><b>${esc(c.expiry||"--")}</b></span></div><div style="display:flex;gap:7px;margin-top:13px;position:relative;z-index:2"><button class="btn secondary sm" onclick="requestCardDetails('${c.id}')">🔓 View Full Details</button>${appMode==="admin"?`<button class="btn secondary sm" onclick="openCard('${type}','${c.id}')">Edit</button><button class="btn danger sm" onclick="deleteCard('${c.id}')">Remove</button>`:""}</div></div>`).join(""):'<div class="card empty">No cards added yet. Click “Add” to create one.</div>'}
+function renderCategories(){$("categoryGrid").innerHTML=data.categories.map(c=>`<div class="cat"><div class="emoji">${c.emoji}</div><strong>${esc(c.name)}</strong><small>${c.subs.length} child sections</small><div style="margin-top:9px;font-size:10px;color:#8b94a5">${c.subs.slice(0,4).map(esc).join(" · ")}${c.subs.length>4?" …":""}</div></div>`).join("")}
+function renderReports(){let ex=data.expenses,total=ex.reduce((a,e)=>a+e.amount,0);$("avgSpend").textContent=money(ex.length?total/ex.length:0);$("biggestSpend").textContent=money(Math.max(0,...ex.map(e=>e.amount)));$("txCount").textContent=ex.length;let cat={};ex.forEach(e=>cat[e.category]=(cat[e.category]||0)+e.amount);let arr=Object.entries(cat).sort((a,b)=>b[1]-a[1]),mx=arr[0]?.[1]||1;$("reportCategories").innerHTML=arr.map(([k,v])=>`<div style="margin:15px 0"><div style="display:flex;justify-content:space-between"><b>${esc(k)}</b><span>${money(v)}</span></div><div class="progress" style="margin-top:7px"><i style="width:${v/mx*100}%"></i></div></div>`).join("")||'<div class="empty">No data yet.</div>'}
+function fillExpenseFilter(){let s=$("expenseCat"),cur=s.value;s.innerHTML='<option value="">All categories</option>'+data.categories.map(c=>`<option>${esc(c.name)}</option>`).join("");s.value=cur}
+function renderAll(){fillExpenseFilter();renderDashboard();renderExpenses();renderCards("credit");renderCards("debit");renderCategories();renderReports()}
+function mask(n){n=String(n||"").replace(/\D/g,"");return n.length>4?"•••• •••• •••• "+n.slice(-4):n}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+async function exportData(){
+  if(!sessionUnlocked||appMode!=="admin"){alert("Admin Mode is required for export.");return;}
+  const row=await getVaultRow();if(!row)return;
+  const backup={format:"SpendWise Cloud Encrypted Backup",version:2,salt:row.salt,vault:row.vault};
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="spendwise-cloud-encrypted-backup.json";a.click();URL.revokeObjectURL(a.href);toast("Encrypted backup exported 🔐");
+}
+function importData(ev){
+  if(!sessionUnlocked||appMode!=="admin"){alert("Admin Mode is required for import.");return;}
+  let f=ev.target.files[0];if(!f)return;
+  let r=new FileReader();
+  r.onload=async()=>{
+    try{
+      let x=JSON.parse(r.result);
+      if(x.format!=="SpendWise Cloud Encrypted Backup"||!x.salt||!x.vault)throw Error();
+      let p=prompt("Enter the backup password:");
+      if(!p)return;
+      let result=await decryptBlob(p,b64ToBytes(x.salt),x.vault);
+      if(!result.obj.expenses||!result.obj.cards||!result.obj.categories)throw Error();
+      if(!confirm("Import this backup and replace your current cloud vault?"))return;
+      data=result.obj;vaultKey=result.key;vaultSalt=x.salt;await save();renderAll();toast("Encrypted backup restored ✓");
+    }catch(e){alert("Could not import backup. Check the file and password.")}
+    ev.target.value="";
+  };r.readAsText(f)
+}
+async function lockNow(){
+  sessionUnlocked=false;vaultKey=null;detailUnlockUntil=0;closeSensitive();clearInterval(autoLockTimer);
+  document.querySelectorAll("input").forEach(i=>{if(i.type==="password")i.value=""});
+  $("lockScreen").style.display="flex";$("authEmail").value=currentUser?.email||"";initCloud();toast("Vault locked");
+}
+async function clearData(){
+  if(!currentUser)return;
+  if(confirm("This permanently deletes ALL cloud cards, expenses and categories. Continue?")){
+    const {error}=await sb.from("finance_vaults").delete().eq("user_id",currentUser.id);
+    if(error)return alert(error.message);
+    await sb.auth.signOut();location.reload();
+  }
+}
+initCloud();
+</script>
+</body>
+</html>
