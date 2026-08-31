@@ -24,13 +24,13 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
 .form{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}.form .full{grid-column:1/-1}label{font-size:12px;color:#647084;font-weight:700;display:block;margin-bottom:6px}input,select{width:100%;padding:11px 12px;border:1px solid #e2e6ef;border-radius:11px;background:#fff;outline:none;color:var(--text)}input:focus,select:focus{border-color:#9c91ff;box-shadow:0 0 0 3px #eeeaff}.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:15px}
 .cards{grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}.bank-card{padding:22px;color:white;border-radius:19px;min-height:170px;position:relative;overflow:hidden}.bank-card:after{content:"";position:absolute;width:170px;height:170px;border-radius:50%;right:-55px;top:-65px;background:rgba(255,255,255,.12)}.bank-card.purplebg{background:linear-gradient(135deg,#42318e,#8a78ed)}.bank-card.bluebg{background:linear-gradient(135deg,#126c9c,#4bb8e8)}.bank-card.darkbg{background:linear-gradient(135deg,#263238,#596b75)}.bank-card .chip{width:38px;height:27px;background:#f4d58c;border-radius:6px;margin:10px 0 18px}.card-number{font-size:18px;letter-spacing:2px}.card-meta{display:flex;justify-content:space-between;margin-top:17px;font-size:11px;opacity:.85}.card-name{font-weight:800;font-size:14px;margin-top:3px}.mini{font-size:11px;color:#dce4ff}.empty{padding:30px;text-align:center;color:var(--muted)}
 .category-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:12px}.cat{padding:16px;border-radius:16px;background:#f8f9fd;border:1px solid #edf0f6}.cat .emoji{font-size:27px}.cat strong{display:block;margin-top:8px}.cat small{color:var(--muted)}
-.modal{display:none;position:fixed;inset:0;background:rgba(20,24,40,.48);z-index:20;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.modal-box{background:#fff;border-radius:22px;padding:24px;width:min(620px,100%);max-height:90vh;overflow:auto}.close{float:right;background:#f2f3f7;border-radius:50%;width:34px;height:34px;font-size:18px}.toast{position:fixed;right:22px;bottom:22px;background:#182033;color:#fff;padding:13px 17px;border-radius:12px;box-shadow:var(--shadow);display:none;z-index:50}.toast.show{display:block}
+.modal{display:none;position:fixed;inset:0;background:rgba(20,24,40,.48);z-index:200;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.modal-box{background:#fff;border-radius:22px;padding:24px;width:min(620px,100%);max-height:90vh;overflow:auto}.close{float:right;background:#f2f3f7;border-radius:50%;width:34px;height:34px;font-size:18px}.toast{position:fixed;right:22px;bottom:22px;background:#182033;color:#fff;padding:13px 17px;border-radius:12px;box-shadow:var(--shadow);display:none;z-index:50}.toast.show{display:block}
 .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px}.filters input,.filters select{max-width:220px}.search{flex:1;min-width:180px}
 @media(max-width:950px){
   .app{display:block}
   .sidebar{
     position:fixed;left:0;right:0;bottom:0;top:auto;width:100%;height:auto;
-    z-index:100;padding:7px 6px 8px;background:linear-gradient(180deg,#272050,#19152f);
+    z-index:90;padding:7px 6px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(180deg,#272050,#19152f);
     border-top:1px solid rgba(255,255,255,.12)
   }
   .logo,.side-note{display:none}
@@ -49,12 +49,12 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
 }
 @media(max-width:620px){
   body{font-size:14px}
-  .main{padding:14px 12px 88px}
+  .main{padding:14px 12px calc(88px + env(safe-area-inset-bottom))}
   .top{align-items:flex-start;gap:8px;margin-bottom:16px}
   .title{min-width:0}
   .title h1{font-size:21px;line-height:1.2}
   .title p{font-size:12px;line-height:1.35}
-  #sessionTimer{font-size:11px;padding:8px 10px;white-space:nowrap;font-weight:800;color:#5146b8;background:#eef0ff}
+  #sessionTimer{font-size:10px;padding:8px 8px;white-space:nowrap}
   #today{display:none}
   .stats,.three,.cards{grid-template-columns:1fr}
   .card{padding:15px;border-radius:16px}
@@ -71,12 +71,22 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
   .form .full{grid-column:auto}
   .actions{flex-wrap:wrap;justify-content:stretch}
   .actions .btn{flex:1;min-width:120px}
-  .modal{padding:8px;align-items:flex-end}
-  .modal-box{width:100%;max-height:92vh;border-radius:20px 20px 0 0;padding:18px}
+  .modal{padding:0;align-items:flex-end;z-index:200}
+  .modal-box{
+    width:100%;max-height:88vh;border-radius:22px 22px 0 0;padding:18px 16px 22px;
+    overflow:auto;-webkit-overflow-scrolling:touch;
+  }
+  .modal-box .actions{
+    position:sticky;bottom:0;padding-top:12px;margin-top:14px;
+    background:#fff;z-index:3;
+  }
+  .modal-box .close{position:sticky;top:0;z-index:4;margin-bottom:4px}
   #expenseTable{overflow-x:auto}
   table{min-width:700px}
   .bar-chart{gap:6px}
   .bank-card{min-height:180px}
+  .bank-card > div:last-child{display:flex!important;flex-wrap:wrap;gap:7px!important}
+  .bank-card > div:last-child .btn{flex:1 1 auto;min-width:120px}
   .nav button{font-size:8px;min-height:50px}
   .nav button:first-letter{font-size:17px}
 }
@@ -362,8 +372,8 @@ async function cloudSignup(){
   }catch(e){showLockError(e.message||"Unable to create account.")}
 }
 function enterApp(){
-  $("lockScreen").style.display="none";
   startPageRefreshTimer();
+  $("lockScreen").style.display="none";
   appMode="normal";
   switchMode("normal");
   $("autoLockSelect").value=String(getAutoLock());
@@ -400,40 +410,30 @@ let lastActivity=Date.now();
 const PAGE_REFRESH_MS=120000;
 let pageRefreshTimer=null;
 let pageRefreshInterval=null;
-let pageRefreshStartedAt=0;
+let pageRefreshStartedAt=Date.now();
 
 function startPageRefreshTimer(){
   clearTimeout(pageRefreshTimer);
   clearInterval(pageRefreshInterval);
-
   pageRefreshStartedAt=Date.now();
 
   const updateTimer=()=>{
-    const elapsed=Date.now()-pageRefreshStartedAt;
-    const remaining=Math.max(0,PAGE_REFRESH_MS-elapsed);
+    const remaining=Math.max(0,PAGE_REFRESH_MS-(Date.now()-pageRefreshStartedAt));
     const totalSeconds=Math.ceil(remaining/1000);
     const mins=String(Math.floor(totalSeconds/60)).padStart(2,"0");
     const secs=String(totalSeconds%60).padStart(2,"0");
     const el=$("sessionTimer");
-
-    if(el){
-      el.textContent=`🔐 Refresh in ${mins}:${secs}`;
-      el.title=`The page will automatically refresh in ${mins}:${secs}`;
-    }
-
-    if(remaining<=0){
-      clearInterval(pageRefreshInterval);
-    }
+    if(el)el.textContent=`🔐 Refresh in ${mins}:${secs}`;
+    if(remaining<=0)clearInterval(pageRefreshInterval);
   };
 
   updateTimer();
   pageRefreshInterval=setInterval(updateTimer,1000);
-
   pageRefreshTimer=setTimeout(()=>{
-    clearInterval(pageRefreshInterval);
     location.reload();
   },PAGE_REFRESH_MS);
 }
+
 function getAutoLock(){return +(localStorage.getItem("naveenexpensesAutoLock")||"10")}
 function setAutoLock(v){if(appMode!=="admin"){if(!requireAdminForMode()){$("autoLockSelect").value=String(getAutoLock());return;}}localStorage.setItem("naveenexpensesAutoLock",String(v));startAutoLock();toast(v==="0"?"Auto-lock disabled":`Auto-lock set to ${v} minutes`)}
 function startRealtimeSync(){
