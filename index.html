@@ -372,7 +372,6 @@ async function cloudSignup(){
   }catch(e){showLockError(e.message||"Unable to create account.")}
 }
 function enterApp(){
-  startPageRefreshTimer();
   $("lockScreen").style.display="none";
   appMode="normal";
   switchMode("normal");
@@ -407,34 +406,7 @@ let detailCardId=null;
 let autoLockTimer=null;
 let lastActivity=Date.now();
 
-const PAGE_REFRESH_MS=120000;
-let pageRefreshTimer=null;
-let pageRefreshInterval=null;
-let pageRefreshStartedAt=Date.now();
-
-function startPageRefreshTimer(){
-  clearTimeout(pageRefreshTimer);
-  clearInterval(pageRefreshInterval);
-  pageRefreshStartedAt=Date.now();
-
-  const updateTimer=()=>{
-    const remaining=Math.max(0,PAGE_REFRESH_MS-(Date.now()-pageRefreshStartedAt));
-    const totalSeconds=Math.ceil(remaining/1000);
-    const mins=String(Math.floor(totalSeconds/60)).padStart(2,"0");
-    const secs=String(totalSeconds%60).padStart(2,"0");
-    const el=$("sessionTimer");
-    if(el)el.textContent=`🔐 Refresh in ${mins}:${secs}`;
-    if(remaining<=0)clearInterval(pageRefreshInterval);
-  };
-
-  updateTimer();
-  pageRefreshInterval=setInterval(updateTimer,1000);
-  pageRefreshTimer=setTimeout(()=>{
-    location.reload();
-  },PAGE_REFRESH_MS);
-}
-
-function getAutoLock(){return +(localStorage.getItem("naveenexpensesAutoLock")||"10")}
+function getAutoLock(){return +(localStorage.getItem("naveenexpensesAutoLock")||"0")}
 function setAutoLock(v){if(appMode!=="admin"){if(!requireAdminForMode()){$("autoLockSelect").value=String(getAutoLock());return;}}localStorage.setItem("naveenexpensesAutoLock",String(v));startAutoLock();toast(v==="0"?"Auto-lock disabled":`Auto-lock set to ${v} minutes`)}
 function startRealtimeSync(){
   if(!currentUser)return;
@@ -531,13 +503,13 @@ function openExpense(id=null){$("expenseForm").reset();$("expenseId").value=id||
 function fillCategories(){let s=$("eCategory");s.innerHTML=data.categories.map(c=>`<option>${esc(c.name)}</option>`).join("");updateSubs()}
 function updateSubs(){let c=data.categories.find(x=>x.name===$("eCategory").value);$("eSubcategory").innerHTML=(c?.subs||[]).map(x=>`<option>${esc(x)}</option>`).join("")}
 $("eCategory").addEventListener("change",updateSubs);
-function saveExpense(ev){ev.preventDefault();let id=$("expenseId").value;let obj={id:id||Date.now().toString(),date:$("eDate").value,amount:+$("eAmount").value,merchant:$("eMerchant").value.trim(),category:$("eCategory").value,subcategory:$("eSubcategory").value,method:$("eMethod").value,frequency:$("eFrequency").value,status:$("eStatus").value,notes:$("eNotes").value.trim()};if(id){let i=data.expenses.findIndex(x=>x.id===id);data.expenses[i]=obj}else data.expenses.unshift(obj);save();closeModal("expenseModal");renderAll();toast(id?"Expense updated":"Expense added ✓")}
-function deleteExpense(id){if(confirm("Delete this expense?")){data.expenses=data.expenses.filter(x=>x.id!==id);save();renderAll();toast("Expense deleted")}}
+async function saveExpense(ev){ev.preventDefault();let id=$("expenseId").value;let obj={id:id||Date.now().toString(),date:$("eDate").value,amount:+$("eAmount").value,merchant:$("eMerchant").value.trim(),category:$("eCategory").value,subcategory:$("eSubcategory").value,method:$("eMethod").value,frequency:$("eFrequency").value,status:$("eStatus").value,notes:$("eNotes").value.trim()};if(id){let i=data.expenses.findIndex(x=>x.id===id);data.expenses[i]=obj}else data.expenses.unshift(obj);await save();closeModal("expenseModal");renderAll();toast(id?"Expense updated":"Expense added ✓")}
+async function deleteExpense(id){if(confirm("Delete this expense?")){data.expenses=data.expenses.filter(x=>x.id!==id);await save();renderAll();toast("Expense deleted")}}
 function openCard(type,id=null){if(appMode!=="admin"){if(!requireAdminForMode())return;}$("cardForm").reset();$("cardId").value=id||"";$("cardType").value=type;$("cardModalTitle").textContent=(id?"Edit ":"Add ")+(type==="credit"?"Credit Card":"Debit Card");if(id){let c=data.cards.find(x=>x.id===id);if(c){$("cName").value=c.name;$("cHolder").value=c.holder||"";$("cNumber").value=c.number;$("cCvv").value=c.cvv||"";$("cExpiry").value=c.expiry;$("cLimit").value=c.limit||""}}$("cardModal").classList.add("show")}
-function saveCard(ev){ev.preventDefault();let id=$("cardId").value,obj={id:id||Date.now().toString(),type:$("cardType").value,name:$("cName").value.trim(),holder:$("cHolder").value.trim(),number:$("cNumber").value.replace(/\s/g,""),cvv:$("cCvv").value,expiry:$("cExpiry").value,limit:+$("cLimit").value||0};if(id){let i=data.cards.findIndex(x=>x.id===id);data.cards[i]=obj}else data.cards.push(obj);save();closeModal("cardModal");renderAll();toast(id?"Card updated":"Card added ✓")}
+async function saveCard(ev){ev.preventDefault();let id=$("cardId").value,obj={id:id||Date.now().toString(),type:$("cardType").value,name:$("cName").value.trim(),holder:$("cHolder").value.trim(),number:$("cNumber").value.replace(/\s/g,""),cvv:$("cCvv").value,expiry:$("cExpiry").value,limit:+$("cLimit").value||0};if(id){let i=data.cards.findIndex(x=>x.id===id);data.cards[i]=obj}else data.cards.push(obj);await save();closeModal("cardModal");renderAll();toast(id?"Card updated":"Card added ✓")}
 function deleteCard(id){if(appMode!=="admin"){if(!requireAdminForMode())return;}if(confirm("Remove this card?")){data.cards=data.cards.filter(x=>x.id!==id);save();renderAll()}}
 function openCategory(){if(appMode!=="admin"){if(!requireAdminForMode())return;}$("categoryModal").classList.add("show")}
-function saveCategory(ev){ev.preventDefault();let n=$("newCat").value.trim(),s=$("newSubs").value.split(",").map(x=>x.trim()).filter(Boolean);data.categories.push({name:n,emoji:$("newEmoji").value||"✨",subs:s.length?s:["Other"]});save();closeModal("categoryModal");renderAll();toast("Category added ✓")}
+async function saveCategory(ev){ev.preventDefault();let n=$("newCat").value.trim(),s=$("newSubs").value.split(",").map(x=>x.trim()).filter(Boolean);data.categories.push({name:n,emoji:$("newEmoji").value||"✨",subs:s.length?s:["Other"]});await save();closeModal("categoryModal");renderAll();toast("Category added ✓")}
 function closeModal(id){$(id).classList.remove("show")}
 
 function renderDashboard(){
@@ -585,9 +557,8 @@ function importData(ev){
   };r.readAsText(f)
 }
 async function lockNow(){
-  clearTimeout(pageRefreshTimer);
-  clearInterval(pageRefreshInterval);
   sessionUnlocked=false;vaultKey=null;detailUnlockUntil=0;closeSensitive();clearInterval(autoLockTimer);
+  if(window.naveenexpensesChannel){sb.removeChannel(window.naveenexpensesChannel);window.naveenexpensesChannel=null;}
   document.querySelectorAll("input").forEach(i=>{if(i.type==="password")i.value=""});
   $("lockScreen").style.display="flex";$("authEmail").value=currentUser?.email||"";initCloud();toast("Vault locked");
 }
