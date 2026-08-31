@@ -40,7 +40,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
     <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" required>
     <div style="height:10px"></div>
     <label>Password</label>
-    <input id="authPassword" type="password" minlength="8" autocomplete="current-password" placeholder="Your admin password" required>
+    <input id="authPassword" type="password" minlength="8" autocomplete="current-password" placeholder="Your login password" required>
     <div style="display:flex;gap:8px;margin-top:16px">
       <button id="loginBtn" class="btn" style="flex:1" onclick="cloudLogin()">🔓 Login</button>
       <button id="signupBtn" class="btn secondary" style="flex:1" onclick="cloudSignup()">Create Account</button>
@@ -63,7 +63,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
     <button onclick="showView('reports',this)">📊 Reports</button>
     <button onclick="requireAdminForMode().then(ok=>ok&&showView('settings',document.querySelectorAll('.nav button')[6]))">⚙️ Settings</button>
   </div>
-  <div class="side-note">Your data is stored locally in this browser.<br><br>Tip: export a backup regularly.</div>
+  <div class="side-note">Your encrypted vault is synced to the cloud.<br><br>Tip: export an encrypted backup regularly.</div>
 </aside>
 
 <main class="main">
@@ -173,13 +173,13 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
 <form class="form" onsubmit="saveCategory(event)"><div><label>Name</label><input id="newCat" required placeholder="e.g. Travel"></div><div><label>Emoji</label><input id="newEmoji" value="✨" maxlength="2"></div><div class="full"><label>Child sections (comma separated)</label><input id="newSubs" placeholder="Flights, Hotels, Cabs, Metro"></div><div class="full actions"><button type="button" class="btn secondary" onclick="closeModal('categoryModal')">Cancel</button><button class="btn">Add Category</button></div></form></div></div>
 <div class="modal" id="passwordModal"><div class="modal-box"><button class="close" onclick="closeModal('passwordModal')">×</button><h2>Change Admin Password</h2><p style="font-size:12px;color:#718096">Your existing vault will be re-encrypted with the new password.</p><form class="form" onsubmit="changePassword(event)"><div class="full"><label>Current password</label><input id="oldPassword" type="password" required></div><div><label>New password</label><input id="newPassword" type="password" minlength="8" required></div><div><label>Confirm new password</label><input id="newPassword2" type="password" minlength="8" required></div><div class="full actions"><button type="button" class="btn secondary" onclick="closeModal('passwordModal')">Cancel</button><button class="btn">Change Password</button></div></form></div></div>
 
-<div class="modal" id="detailModal"><div class="modal-box"><button class="close" onclick="closeModal('detailModal')">×</button><h2>🔓 Protected Card Details</h2><p style="font-size:12px;color:#718096">Enter the admin password to temporarily reveal sensitive details.</p><form onsubmit="unlockDetails(event)" class="form"><div class="full"><label>Admin password</label><input id="detailPassword" type="password" required></div><div class="full actions"><button type="button" class="btn secondary" onclick="closeModal('detailModal')">Cancel</button><button class="btn">Reveal Details</button></div></form></div></div>
+<div class="modal" id="detailModal"><div class="modal-box"><button class="close" onclick="closeModal('detailModal')">×</button><h2>🔓 Protected Card Details</h2><p style="font-size:12px;color:#718096">Enter the Admin Mode password to temporarily reveal sensitive details.</p><form onsubmit="unlockDetails(event)" class="form"><div class="full"><label>Admin password</label><input id="detailPassword" type="password" required></div><div class="full actions"><button type="button" class="btn secondary" onclick="closeModal('detailModal')">Cancel</button><button class="btn">Reveal Details</button></div></form></div></div>
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL="https://dnqlrlielxpicshoicxe.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY="sb_publishable_jBhJN1bNxdh-0HCPXGgyfg_LrOmEmoC";
+const SUPABASE_URL="https://zgpnbwipafisuloqrxle.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_xXTQbLDZtbYSHeE1r79WRQ_Ck1Tfhcm";
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 const defaultCategories=[
  {name:"Shopping",emoji:"🛍️",subs:["Amazon","Flipkart","Meesho","Myntra","Clothing","Electronics","Other Shopping"]},
@@ -320,7 +320,7 @@ let autoLockTimer=null;
 let lastActivity=Date.now();
 
 function getAutoLock(){return +(localStorage.getItem("spendwiseAutoLock")||"10")}
-function setAutoLock(v){localStorage.setItem("spendwiseAutoLock",String(v));startAutoLock();toast(v==="0"?"Auto-lock disabled":`Auto-lock set to ${v} minutes`)}
+function setAutoLock(v){if(appMode!=="admin"){if(!requireAdminForMode()){$("autoLockSelect").value=String(getAutoLock());return;}}localStorage.setItem("spendwiseAutoLock",String(v));startAutoLock();toast(v==="0"?"Auto-lock disabled":`Auto-lock set to ${v} minutes`)}
 function startRealtimeSync(){
   if(!currentUser)return;
   if(window.spendwiseChannel){sb.removeChannel(window.spendwiseChannel)}
@@ -346,17 +346,21 @@ function startAutoLock(){
 function switchMode(mode){
   appMode=mode;
   $("modeBanner").style.display="block";
-  $("modeBanner").textContent=mode==="admin"?"🛡️ ADMIN MODE — full card management, security and backup controls are available.":"🧾 ENTRY MODE — expense tracking is available; sensitive card details remain protected.";
-  document.querySelectorAll(".nav button").forEach((b,i)=>{b.style.display=(mode==="normal" && i>=2)?"none":""});
-  if(mode==="normal" && document.querySelector(".view.active").id!=="dashboard")showView("dashboard",document.querySelector(".nav button"));
-  toast(mode==="admin"?"Admin Mode enabled":"Normal Expense Entry Mode enabled");
+  $("modeBanner").textContent=mode==="admin"
+    ?"🛡️ ADMIN MODE — protected card management, security and backup controls are unlocked."
+    :"🔐 SECURE MODE — login is active. Use Admin Mode for protected actions.";
+  document.querySelectorAll(".nav button").forEach(b=>b.style.display="");
+  toast(mode==="admin"?"Admin Mode enabled":"Secure mode enabled");
 }
-async function requireAdminForMode(){
-  let p=prompt("Enter admin password to enable Admin Mode:");
-  if(!p)return false;
-  try{let r=await decryptVault(p);vaultKey=r.key;data=r.obj;appMode="admin";switchMode("admin");return true}catch(e){alert("Incorrect password.");return false}
-}
-function openPasswordChange(){$("passwordModal").classList.add("show")}
+function requireAdminForMode(){
+  const ADMIN_MODE_PASSWORD="nav33nnn";
+  const p=prompt("Enter Admin Mode password:");
+  if(p===null)return false;
+  if(p!==ADMIN_MODE_PASSWORD){alert("Incorrect Admin Mode password.");return false;}
+  appMode="admin";
+  switchMode("admin");
+  return true;
+}function openPasswordChange(){if(appMode!=="admin"){if(!requireAdminForMode())return;}$("passwordModal").classList.add("show")}
 async function changePassword(ev){
   ev.preventDefault();
   let oldP=$("oldPassword").value,newP=$("newPassword").value,newP2=$("newPassword2").value;
@@ -391,20 +395,13 @@ function requestCardDetails(id){
   $("detailPassword").value="";
   $("detailModal").classList.add("show");
 }
-async function unlockDetails(ev){
+function unlockDetails(ev){
   ev.preventDefault();
-  try{
-    const p=$("detailPassword").value;
-    const row=await getVaultRow();
-    if(!row)throw Error();
-    const r=await decryptBlob(p,b64ToBytes(row.salt),row.vault);
-    const {error}=await sb.auth.signInWithPassword({email:currentUser.email,password:p});
-    if(error)throw error;
-    let c=r.obj.cards.find(x=>x.id===detailCardId);
-    if(!c)throw Error();
-    detailUnlockUntil=Date.now()+120000;
-    closeModal("detailModal");showSensitiveCard(c);
-  }catch(e){alert("Incorrect admin password.")}
+  if(!requireAdminForMode())return;
+  const c=data.cards.find(x=>x.id===detailCardId);
+  if(!c){alert("Card not found.");return;}
+  detailUnlockUntil=Date.now()+120000;
+  closeModal("detailModal");showSensitiveCard(c);
 }
 function showSensitiveCard(c){
   let old=document.getElementById("sensitiveCardModal");if(old)old.remove();
@@ -424,10 +421,10 @@ function updateSubs(){let c=data.categories.find(x=>x.name===$("eCategory").valu
 $("eCategory").addEventListener("change",updateSubs);
 function saveExpense(ev){ev.preventDefault();let id=$("expenseId").value;let obj={id:id||Date.now().toString(),date:$("eDate").value,amount:+$("eAmount").value,merchant:$("eMerchant").value.trim(),category:$("eCategory").value,subcategory:$("eSubcategory").value,method:$("eMethod").value,frequency:$("eFrequency").value,status:$("eStatus").value,notes:$("eNotes").value.trim()};if(id){let i=data.expenses.findIndex(x=>x.id===id);data.expenses[i]=obj}else data.expenses.unshift(obj);save();closeModal("expenseModal");renderAll();toast(id?"Expense updated":"Expense added ✓")}
 function deleteExpense(id){if(confirm("Delete this expense?")){data.expenses=data.expenses.filter(x=>x.id!==id);save();renderAll();toast("Expense deleted")}}
-function openCard(type,id=null){if(appMode!=="admin"){requireAdminForMode();return}$("cardForm").reset();$("cardId").value=id||"";$("cardType").value=type;$("cardModalTitle").textContent=(id?"Edit ":"Add ")+(type==="credit"?"Credit Card":"Debit Card");if(id){let c=data.cards.find(x=>x.id===id);if(c){$("cName").value=c.name;$("cHolder").value=c.holder||"";$("cNumber").value=c.number;$("cCvv").value=c.cvv||"";$("cExpiry").value=c.expiry;$("cLimit").value=c.limit||""}}$("cardModal").classList.add("show")}
+function openCard(type,id=null){if(appMode!=="admin"){if(!requireAdminForMode())return;}$("cardForm").reset();$("cardId").value=id||"";$("cardType").value=type;$("cardModalTitle").textContent=(id?"Edit ":"Add ")+(type==="credit"?"Credit Card":"Debit Card");if(id){let c=data.cards.find(x=>x.id===id);if(c){$("cName").value=c.name;$("cHolder").value=c.holder||"";$("cNumber").value=c.number;$("cCvv").value=c.cvv||"";$("cExpiry").value=c.expiry;$("cLimit").value=c.limit||""}}$("cardModal").classList.add("show")}
 function saveCard(ev){ev.preventDefault();let id=$("cardId").value,obj={id:id||Date.now().toString(),type:$("cardType").value,name:$("cName").value.trim(),holder:$("cHolder").value.trim(),number:$("cNumber").value.replace(/\s/g,""),cvv:$("cCvv").value,expiry:$("cExpiry").value,limit:+$("cLimit").value||0};if(id){let i=data.cards.findIndex(x=>x.id===id);data.cards[i]=obj}else data.cards.push(obj);save();closeModal("cardModal");renderAll();toast(id?"Card updated":"Card added ✓")}
-function deleteCard(id){if(confirm("Remove this card?")){data.cards=data.cards.filter(x=>x.id!==id);save();renderAll()}}
-function openCategory(){$("categoryModal").classList.add("show")}
+function deleteCard(id){if(appMode!=="admin"){if(!requireAdminForMode())return;}if(confirm("Remove this card?")){data.cards=data.cards.filter(x=>x.id!==id);save();renderAll()}}
+function openCategory(){if(appMode!=="admin"){if(!requireAdminForMode())return;}$("categoryModal").classList.add("show")}
 function saveCategory(ev){ev.preventDefault();let n=$("newCat").value.trim(),s=$("newSubs").value.split(",").map(x=>x.trim()).filter(Boolean);data.categories.push({name:n,emoji:$("newEmoji").value||"✨",subs:s.length?s:["Other"]});save();closeModal("categoryModal");renderAll();toast("Category added ✓")}
 function closeModal(id){$(id).classList.remove("show")}
 
@@ -481,6 +478,7 @@ async function lockNow(){
   $("lockScreen").style.display="flex";$("authEmail").value=currentUser?.email||"";initCloud();toast("Vault locked");
 }
 async function clearData(){
+  if(appMode!=="admin"){if(!requireAdminForMode())return;}
   if(!currentUser)return;
   if(confirm("This permanently deletes ALL cloud cards, expenses and categories. Continue?")){
     const {error}=await sb.from("finance_vaults").delete().eq("user_id",currentUser.id);
