@@ -54,7 +54,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
   .title{min-width:0}
   .title h1{font-size:21px;line-height:1.2}
   .title p{font-size:12px;line-height:1.35}
-  #sessionTimer{font-size:10px;padding:8px 8px;white-space:nowrap}
+  #sessionTimer{font-size:11px;padding:8px 10px;white-space:nowrap;font-weight:800;color:#5146b8;background:#eef0ff}
   #today{display:none}
   .stats,.three,.cards{grid-template-columns:1fr}
   .card{padding:15px;border-radius:16px}
@@ -362,8 +362,8 @@ async function cloudSignup(){
   }catch(e){showLockError(e.message||"Unable to create account.")}
 }
 function enterApp(){
-  startPageRefreshTimer();
   $("lockScreen").style.display="none";
+  startPageRefreshTimer();
   appMode="normal";
   switchMode("normal");
   $("autoLockSelect").value=String(getAutoLock());
@@ -400,30 +400,40 @@ let lastActivity=Date.now();
 const PAGE_REFRESH_MS=120000;
 let pageRefreshTimer=null;
 let pageRefreshInterval=null;
-let pageRefreshStartedAt=Date.now();
+let pageRefreshStartedAt=0;
 
 function startPageRefreshTimer(){
   clearTimeout(pageRefreshTimer);
   clearInterval(pageRefreshInterval);
+
   pageRefreshStartedAt=Date.now();
 
   const updateTimer=()=>{
-    const remaining=Math.max(0,PAGE_REFRESH_MS-(Date.now()-pageRefreshStartedAt));
+    const elapsed=Date.now()-pageRefreshStartedAt;
+    const remaining=Math.max(0,PAGE_REFRESH_MS-elapsed);
     const totalSeconds=Math.ceil(remaining/1000);
     const mins=String(Math.floor(totalSeconds/60)).padStart(2,"0");
     const secs=String(totalSeconds%60).padStart(2,"0");
     const el=$("sessionTimer");
-    if(el)el.textContent=`🔐 Refresh in ${mins}:${secs}`;
-    if(remaining<=0)clearInterval(pageRefreshInterval);
+
+    if(el){
+      el.textContent=`🔐 Refresh in ${mins}:${secs}`;
+      el.title=`The page will automatically refresh in ${mins}:${secs}`;
+    }
+
+    if(remaining<=0){
+      clearInterval(pageRefreshInterval);
+    }
   };
 
   updateTimer();
   pageRefreshInterval=setInterval(updateTimer,1000);
+
   pageRefreshTimer=setTimeout(()=>{
+    clearInterval(pageRefreshInterval);
     location.reload();
   },PAGE_REFRESH_MS);
 }
-
 function getAutoLock(){return +(localStorage.getItem("naveenexpensesAutoLock")||"10")}
 function setAutoLock(v){if(appMode!=="admin"){if(!requireAdminForMode()){$("autoLockSelect").value=String(getAutoLock());return;}}localStorage.setItem("naveenexpensesAutoLock",String(v));startAutoLock();toast(v==="0"?"Auto-lock disabled":`Auto-lock set to ${v} minutes`)}
 function startRealtimeSync(){
