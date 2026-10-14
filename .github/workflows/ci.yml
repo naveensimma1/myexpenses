@@ -1,0 +1,54 @@
+name: MyExpenses CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate-html:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Display Repository Files
+        run: |
+          echo "Repository Contents:"
+          ls -la
+
+      - name: Verify index.html Exists
+        run: |
+          test -f index.html
+          echo "index.html found"
+
+      - name: Validate HTML Structure
+        run: |
+          grep -i "<html" index.html
+          grep -i "<head" index.html
+          grep -i "<body" index.html
+          echo "Basic HTML tags validated"
+
+      - name: Check Page Title
+        run: |
+          grep -i "<title>" index.html
+          echo "Title tag found"
+
+      - name: Count HTML Lines
+        run: |
+          echo "Line Count:"
+          wc -l index.html
+
+      - name: Upload HTML Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: myexpenses-html
+          path: index.html
+
+      - name: CI Success
+        run: |
+          echo "MyExpenses HTML validation completed successfully"
