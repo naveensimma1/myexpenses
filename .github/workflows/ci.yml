@@ -14,7 +14,7 @@ jobs:
       - name: Show Repository Files
         run: ls -la
 
-      - name: Verify HTML Exists
+      - name: Verify HTML Exists or not
         run: test -f index.html
 
       - name: Show HTML Statistics
