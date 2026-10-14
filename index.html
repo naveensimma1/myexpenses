@@ -54,7 +54,6 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
   .title{min-width:0}
   .title h1{font-size:21px;line-height:1.2}
   .title p{font-size:12px;line-height:1.35}
-  #sessionTimer{font-size:10px;padding:8px 8px;white-space:nowrap}
   #today{display:none}
   .stats,.three,.cards{grid-template-columns:1fr}
   .card{padding:15px;border-radius:16px}
@@ -92,36 +91,15 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
 }
 @media(max-width:380px){
   .main{padding-left:9px;padding-right:9px}
-  #sessionTimer{font-size:9px}
   .title h1{font-size:19px}
   .nav button{font-size:7px}
-}.stats,.three{grid-template-columns:1fr}.form{grid-template-columns:1fr}.top{align-items:flex-start;gap:10px}.date{display:none}.title h1{font-size:24px}}
+}
 </style>
 </head>
 <body>
-<div id="lockScreen" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#19152f,#42318e 55%,#6c5ce7);display:flex;align-items:center;justify-content:center;padding:20px;color:#fff">
-  <div style="width:min(450px,100%);background:rgba(255,255,255,.98);color:#172033;border-radius:24px;padding:30px;box-shadow:0 25px 70px rgba(0,0,0,.28)">
-    <div style="font-size:42px;text-align:center">☁️🔐</div>
-    <h1 id="lockTitle" style="text-align:center;margin:8px 0">NaveenExpenses Cloud Vault</h1>
-    <p id="lockText" style="text-align:center;color:#718096;font-size:13px;line-height:1.5">Sign in to sync your encrypted finance vault across laptop and phone.</p>
-    <label>Email</label>
-    <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" required>
-    <div style="height:10px"></div>
-    <label>Password</label>
-    <input id="authPassword" type="password" minlength="8" autocomplete="current-password" placeholder="Your login password" required>
-    <div style="display:flex;gap:8px;margin-top:16px">
-      <button id="loginBtn" class="btn" style="flex:1" onclick="cloudLogin()">🔓 Login</button>
-      <button id="signupBtn" class="btn secondary" style="flex:1" onclick="cloudSignup()">Create Account</button>
-    </div>
-    <button id="resetVaultBtn" style="display:none;width:100%;margin-top:10px;background:transparent;color:#e74c3c;padding:10px" onclick="forgotPassword()">Forgot password / reset vault</button>
-    <div id="lockError" style="display:none;margin-top:13px;padding:10px;border-radius:10px;background:#fff0ef;color:#c0392b;font-size:12px;text-align:center"></div>
-    <p style="font-size:10px;color:#8a94a6;text-align:center;margin:18px 0 0;line-height:1.5">Your publishable key is safe to use in a browser. Your finance records are additionally encrypted client-side before being stored in Supabase. Never put a Supabase secret/service-role key in this HTML.</p>
-  </div>
-</div>
-
 <div class="app">
 <aside class="sidebar">
-  <div class="logo">Naveen<span>Expenses</em></span> 💳</div>
+  <div class="logo">Naveen<span>Expenses</span> 💳</div>
   <div class="nav">
     <button class="active" onclick="showView('dashboard',this)">🏠 Dashboard</button>
     <button onclick="showView('expenses',this)">💸 Expenses</button>
@@ -131,14 +109,13 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
     <button onclick="showView('reports',this)">📊 Reports</button>
     <button onclick="openSettings()">⚙️ Settings</button>
   </div>
-  <div class="side-note">Your encrypted vault is synced to the cloud.<br><br>Tip: export an encrypted backup regularly.</div>
+  <div class="side-note">Your data stays in this browser.<br><br>Tip: export a backup regularly.</div>
 </aside>
 
 <main class="main">
 <div id="modeBanner" style="display:none;margin-bottom:14px;padding:10px 14px;border-radius:12px;background:#eef0ff;color:#5146b8;font-size:12px;font-weight:750"></div>
 <div class="top"><div class="title"><h1 id="pageTitle">Good morning 👋</h1><p id="pageSub">Your money, organized beautifully.</p></div><div style="display:flex;align-items:center;gap:8px">
 <button class="btn secondary sm" onclick="requireAdminForMode()">🛡️ Admin Mode</button>
-<div class="date" id="sessionTimer" title="The page will refresh automatically after 2 minutes">🔐 Refresh in 02:00</div>
 <div class="date" id="today"></div>
 </div></div>
 
@@ -184,7 +161,7 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
 
 <section id="settings" class="view">
  <div class="card">
-   <div class="section-head"><div><h2>Security Center</h2><p style="color:var(--muted);margin:6px 0 0">Admin controls, privacy and encrypted backup.</p></div><span class="badge paid">🔐 Vault Protected</span></div>
+   <div class="section-head"><div><h2>Settings</h2><p style="color:var(--muted);margin:6px 0 0">Admin controls, privacy and backup on this device.</p></div><span class="badge paid">Saved in this browser</span></div>
 
    <div class="grid three">
       <div class="card" style="box-shadow:none;background:#f8f9fd">
@@ -192,38 +169,19 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
         <p style="font-size:12px;color:#718096">Change the password used for Admin Mode and protected card details.</p>
         <button class="btn sm" onclick="openPasswordChange()">🔑 Change Admin Password</button>
       </div>
-      <div class="card" style="box-shadow:none;background:#f8f9fd">
-        <h3 style="margin-top:0">Auto Lock</h3>
-        <p style="font-size:12px;color:#718096">Lock the app after inactivity.</p>
-        <select id="autoLockSelect" onchange="setAutoLock(this.value)">
-          <option value="0">Never</option><option value="5">5 minutes</option><option value="10">10 minutes</option>
-          <option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60">60 minutes</option>
-        </select>
-      </div>
-      <div class="card" style="box-shadow:none;background:#f8f9fd">
-        <h3 style="margin-top:0">Lock Session</h3>
-        <p style="font-size:12px;color:#718096">Immediately return to the secure login screen.</p>
-        <button class="btn secondary sm" onclick="lockNow()">🔒 Lock Now</button>
-      </div>
+      <div class="card" style="box-shadow:none;background:#f8f9fd"><b>Card Numbers</b><p style="font-size:12px;color:#718096">Full card numbers require a second password check.</p><button class="btn secondary sm" onclick="setPrivacy('card')">Manage</button></div>
+      <div class="card" style="box-shadow:none;background:#f8f9fd"><b>CVV</b><p style="font-size:12px;color:#718096">CVV is always hidden until explicitly unlocked.</p><button class="btn secondary sm" onclick="setPrivacy('cvv')">Manage</button></div>
     </div>
 
    <hr style="border:0;border-top:1px solid #eee;margin:24px 0">
-   <h3>Privacy Controls</h3>
-   <div class="grid three">
-     <div class="card" style="box-shadow:none;background:#f8f9fd"><b>Card Numbers</b><p style="font-size:12px;color:#718096">Full card numbers require a second password check.</p><button class="btn secondary sm" onclick="setPrivacy('card')">Manage</button></div>
-     <div class="card" style="box-shadow:none;background:#f8f9fd"><b>CVV</b><p style="font-size:12px;color:#718096">CVV is always hidden until explicitly unlocked.</p><button class="btn secondary sm" onclick="setPrivacy('cvv')">Manage</button></div>
-     <div class="card" style="box-shadow:none;background:#f8f9fd"><b>Session</b><p style="font-size:12px;color:#718096">Lock immediately when you're finished.</p><button class="btn secondary sm" onclick="lockNow()">🔒 Lock Now</button></div>
-   </div>
+   <h3>Backup & Restore</h3>
+   <p style="font-size:13px;color:#667">Export a JSON file of your expenses, cards and categories. Importing a backup replaces the data currently saved in this browser.</p>
+   <div class="actions" style="justify-content:flex-start"><button class="btn" onclick="exportData()">⬇ Export Backup</button><button class="btn secondary" onclick="startImport()">⬆ Import Backup</button></div>
+   <input type="file" id="importFile" accept=".json,application/json" hidden onchange="importData(event)">
 
    <hr style="border:0;border-top:1px solid #eee;margin:24px 0">
-   <h3>Encrypted Backup & Restore</h3>
-   <p style="font-size:13px;color:#667">Backups contain encrypted vault data. They do not contain a readable copy of your card or expense information.</p>
-   <div class="actions" style="justify-content:flex-start"><button class="btn" onclick="exportData()">⬇ Export Encrypted Backup</button><button class="btn secondary" onclick="importFile.click()">⬆ Import Encrypted Backup</button></div>
-   <input type="file" id="importFile" accept=".json" hidden onchange="importData(event)">
-
-   <hr style="border:0;border-top:1px solid #eee;margin:24px 0">
-   <p style="font-size:13px;color:#667">Security note: this is a personal static tracker, not a banking app. Data is encrypted at rest in this browser. For maximum safety, consider not storing CVV at all.</p>
-   <button class="btn danger" onclick="clearData()">Delete ALL CLOUD VAULT DATA</button>
+   <p style="font-size:13px;color:#667">This is a personal tracker stored only in this browser. For maximum safety, consider not storing CVV at all.</p>
+   <button class="btn danger" onclick="clearData()">Delete all local data</button>
  </div>
 </section>
 </main>
@@ -263,11 +221,8 @@ table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px 8px
 <div class="modal" id="detailModal"><div class="modal-box"><button class="close" onclick="closeModal('detailModal')">×</button><h2>🔓 Protected Card Details</h2><p style="font-size:12px;color:#718096">Enter the Admin Mode password to temporarily reveal sensitive details.</p><form onsubmit="unlockDetails(event)" class="form"><div class="full"><label>Admin password</label><input id="detailPassword" type="password" required></div><div class="full actions"><button type="button" class="btn secondary" onclick="closeModal('detailModal')">Cancel</button><button class="btn">Reveal Details</button></div></form></div></div>
 <div class="toast" id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL="https://lfbbzlntxcazqhmdnwju.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY="sb_publishable_RL3RRJPxj40skfNMmK7MZg_1SwaiPKW";
-const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const STORAGE_KEY="naveenexpenses-data";
 const defaultCategories=[
  {name:"Shopping",emoji:"🛍️",subs:["Amazon","Flipkart","Meesho","Myntra","Clothing","Electronics","Other Shopping"]},
  {name:"Food & Dining",emoji:"🍔",subs:["Swiggy","Zomato","Dine-out","Cafes","Takeaway","Snacks","Other Food"]},
@@ -283,161 +238,40 @@ const defaultCategories=[
  {name:"Other",emoji:"✨",subs:["Miscellaneous","Cash","Other"]}
 ];
 let data={expenses:[],cards:[],categories:defaultCategories};
-let vaultKey=null;
-let sessionUnlocked=false;
-let currentUser=null;
-let vaultSalt=null;
 
 const $=id=>document.getElementById(id);
 const money=n=>"₹"+Number(n||0).toLocaleString("en-IN",{maximumFractionDigits:2});
 
-function bytesToB64(bytes){let s="";bytes.forEach(b=>s+=String.fromCharCode(b));return btoa(s)}
-function b64ToBytes(s){let bin=atob(s),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a}
-async function deriveKey(password,salt){
-  const material=await crypto.subtle.importKey("raw",new TextEncoder().encode(password),"PBKDF2",false,["deriveKey"]);
-  return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:250000,hash:"SHA-256"},material,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);
-}
-async function encryptData(){
-  const iv=crypto.getRandomValues(new Uint8Array(12));
-  const encoded=new TextEncoder().encode(JSON.stringify(data));
-  const cipher=await crypto.subtle.encrypt({name:"AES-GCM",iv},vaultKey,encoded);
-  return {v:1,iv:bytesToB64(iv),data:bytesToB64(new Uint8Array(cipher))};
-}
-async function decryptBlob(password,salt,blob){
-  const key=await deriveKey(password,salt);
-  const plain=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64ToBytes(blob.iv)},key,b64ToBytes(blob.data));
-  return {key,obj:JSON.parse(new TextDecoder().decode(plain))};
-}
-async function getVaultRow(){
-  if(!currentUser)return null;
-  const {data:row,error}=await sb.from("finance_vaults").select("user_id,salt,vault,updated_at").eq("user_id",currentUser.id).maybeSingle();
-  if(error)throw error;
-  return row;
-}
-async function save(){
-  if(!sessionUnlocked||!vaultKey||!currentUser)return;
-  const vault=await encryptData();
-  const {error}=await sb.from("finance_vaults").upsert({user_id:currentUser.id,salt:vaultSalt,vault,updated_at:new Date().toISOString()},{onConflict:"user_id"});
-  if(error){console.error(error);toast("Cloud save failed — check connection");}
-}
-async function hasCloudVault(){
-  const row=await getVaultRow();
-  return !!row;
-}
-function showLockError(msg){let e=$("lockError");e.textContent=msg;e.style.display="block"}
-function hideLockError(){$("lockError").style.display="none"}
-
-async function cloudLogin(){
-  hideLockError();
-  const email=$("authEmail").value.trim(),password=$("authPassword").value;
-  if(!email||!password)return showLockError("Enter your email and password.");
+function load(){
   try{
-    const {data:auth,error}=await sb.auth.signInWithPassword({email,password});
-    if(error)throw error;
-    currentUser=auth.user;
-    const row=await getVaultRow();
-    if(!row){
-      vaultSalt=bytesToB64(crypto.getRandomValues(new Uint8Array(16)));
-      vaultKey=await deriveKey(password,b64ToBytes(vaultSalt));
-      data={expenses:[],cards:[],categories:defaultCategories};
-      sessionUnlocked=true;
-      await save();
-    }else{
-      vaultSalt=row.salt;
-      const result=await decryptBlob(password,b64ToBytes(row.salt),row.vault);
-      vaultKey=result.key;data=result.obj;
-      if(!data.categories||!data.categories.length)data.categories=defaultCategories;
-      sessionUnlocked=true;
-    }
-    enterApp();
-  }catch(e){console.error(e);showLockError(e.message?.includes("Invalid login")?"Incorrect email or password.":e.message||"Unable to sign in.")}
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const parsed=JSON.parse(raw);
+    if(!parsed||!Array.isArray(parsed.expenses)||!Array.isArray(parsed.cards)) return;
+    data=parsed;
+    if(!Array.isArray(data.categories)||!data.categories.length) data.categories=defaultCategories;
+  }catch(e){console.warn("Could not read saved data",e)}
 }
-async function cloudSignup(){
-  hideLockError();
-  const email=$("authEmail").value.trim(),password=$("authPassword").value;
-  if(!email||!password)return showLockError("Enter an email and password.");
-  if(password.length<8)return showLockError("Password must be at least 8 characters.");
-  try{
-    const {data:auth,error}=await sb.auth.signUp({email,password});
-    if(error)throw error;
-    if(!auth.session){
-      showLockError("Account created. Check your email, confirm it, then return here and Login.");
-      return;
-    }
-    currentUser=auth.user;
-    vaultSalt=bytesToB64(crypto.getRandomValues(new Uint8Array(16)));
-    vaultKey=await deriveKey(password,b64ToBytes(vaultSalt));
-    data={expenses:[],cards:[],categories:defaultCategories};
-    sessionUnlocked=true;await save();enterApp();
-  }catch(e){showLockError(e.message||"Unable to create account.")}
-}
-function enterApp(){
-  $("lockScreen").style.display="none";
-  appMode="normal";
-  switchMode("normal");
-  $("autoLockSelect").value=String(getAutoLock());
-  startAutoLock();
-  startRealtimeSync();
-  renderAll();
-}
-async function forgotPassword(){
-  if(!currentUser){
-    return alert("Login on a device where your account is already authenticated, then use the Reset Vault option.");
-  }
-  if(confirm("This permanently deletes your cloud vault data. Your Supabase account remains. Continue?")){
-    const {error}=await sb.from("finance_vaults").delete().eq("user_id",currentUser.id);
-    if(error)return alert("Could not reset the vault: "+error.message);
-    await sb.auth.signOut();location.reload();
-  }
-}
-async function initCloud(){
-  const {data:session}=await sb.auth.getSession();
-  currentUser=session.session?.user||null;
-  if(currentUser)$("resetVaultBtn").style.display="block";
+function save(){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
 }
 function toast(t){let x=$("toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),2200)}
-function showView(id,btn){document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));if(btn)btn.classList.add("active");const names={dashboard:["Good morning 👋","Your money, organized beautifully."],expenses:["Expenses","Track every rupee and every purchase."],credit:["Credit Cards","Manage cards and monitor spending."],debit:["Debit Cards & Accounts","Keep your payment methods organized."],categories:["Categories","Your spending, broken down into useful sections."],reports:["Reports","Simple insights into your spending habits."],settings:["Settings & Backup","Protect and manage your local data."]};$("pageTitle").textContent=names[id][0];$("pageSub").textContent=names[id][1];renderAll()}
+function showView(id,btn){document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));if(btn)btn.classList.add("active");const names={dashboard:["Good morning 👋","Your money, organized beautifully."],expenses:["Expenses","Track every rupee and every purchase."],credit:["Credit Cards","Manage cards and monitor spending."],debit:["Debit Cards & Accounts","Keep your payment methods organized."],categories:["Categories","Your spending, broken down into useful sections."],reports:["Reports","Simple insights into your spending habits."],settings:["Settings & Backup","Protect and manage your data on this device."]};$("pageTitle").textContent=names[id][0];$("pageSub").textContent=names[id][1];renderAll()}
 $("today").textContent=new Date().toLocaleDateString("en-IN",{weekday:"short",day:"2-digit",month:"short",year:"numeric"});
 
-
 let appMode="normal";
-let detailUnlockUntil=0;
 let detailCardId=null;
-let autoLockTimer=null;
-let lastActivity=Date.now();
 
-function getAutoLock(){return +(localStorage.getItem("naveenexpensesAutoLock")||"0")}
-function setAutoLock(v){if(appMode!=="admin"){if(!requireAdminForMode()){$("autoLockSelect").value=String(getAutoLock());return;}}localStorage.setItem("naveenexpensesAutoLock",String(v));startAutoLock();toast(v==="0"?"Auto-lock disabled":`Auto-lock set to ${v} minutes`)}
-function startRealtimeSync(){
-  if(!currentUser)return;
-  if(window.naveenexpensesChannel){sb.removeChannel(window.naveenexpensesChannel)}
-  window.naveenexpensesChannel=sb.channel("naveenexpenses-vault-"+currentUser.id)
-    .on("postgres_changes",{event:"UPDATE",schema:"public",table:"finance_vaults",filter:"user_id=eq."+currentUser.id},async payload=>{
-      if(!sessionUnlocked||!vaultKey)return;
-      try{
-        const row=payload.new;
-        const plain=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64ToBytes(row.vault.iv)},vaultKey,b64ToBytes(row.vault.data));
-        const incoming=JSON.parse(new TextDecoder().decode(plain));
-        data=incoming;if(data.categories?.length===0)data.categories=defaultCategories;
-        renderAll();toast("Synced from another device ✓");
-      }catch(e){console.warn("Sync update could not be decrypted",e)}
-    }).subscribe();
-}
-function startAutoLock(){
-  clearInterval(autoLockTimer);
-  let mins=getAutoLock();
-  if(!sessionUnlocked||!mins)return;
-  autoLockTimer=setInterval(()=>{if(Date.now()-lastActivity>=mins*60000)lockNow()},10000);
-}
-["click","keydown","mousemove","touchstart"].forEach(ev=>document.addEventListener(ev,()=>{lastActivity=Date.now()}));
 function switchMode(mode){
   appMode=mode;
-  $("modeBanner").style.display="block";
-  $("modeBanner").textContent=mode==="admin"
-    ?"🛡️ ADMIN MODE — protected card management, security and backup controls are unlocked."
-    :"🔐 SECURE MODE — login is active. Use Admin Mode for protected actions.";
+  if(mode==="admin"){
+    $("modeBanner").style.display="block";
+    $("modeBanner").textContent="🛡️ ADMIN MODE — protected card management, security and backup controls are unlocked.";
+    toast("Admin Mode enabled");
+  }else{
+    $("modeBanner").style.display="none";
+  }
   document.querySelectorAll(".nav button").forEach(b=>b.style.display="");
-  toast(mode==="admin"?"Admin Mode enabled":"Secure mode enabled");
 }
 function openSettings(){
   if(appMode!=="admin"){
@@ -456,7 +290,8 @@ function requireAdminForMode(){
   appMode="admin";
   switchMode("admin");
   return true;
-}function openPasswordChange(){if(appMode!=="admin"){if(!requireAdminForMode())return;}$("passwordModal").classList.add("show")}
+}
+function openPasswordChange(){if(appMode!=="admin"){if(!requireAdminForMode())return;}$("passwordModal").classList.add("show")}
 function changePassword(ev){
   ev.preventDefault();
   const oldP=$("oldPassword").value;
@@ -481,11 +316,11 @@ function requestCardDetails(id){
 }
 function unlockDetails(ev){
   ev.preventDefault();
-  if(!requireAdminForMode())return;
+  if($("detailPassword").value!==getAdminPassword()){alert("Incorrect Admin Mode password.");return;}
   const c=data.cards.find(x=>x.id===detailCardId);
   if(!c){alert("Card not found.");return;}
-  detailUnlockUntil=Date.now()+120000;
-  closeModal("detailModal");showSensitiveCard(c);
+  closeModal("detailModal");
+  showSensitiveCard(c);
 }
 function showSensitiveCard(c){
   let old=document.getElementById("sensitiveCardModal");if(old)old.remove();
@@ -503,13 +338,13 @@ function openExpense(id=null){$("expenseForm").reset();$("expenseId").value=id||
 function fillCategories(){let s=$("eCategory");s.innerHTML=data.categories.map(c=>`<option>${esc(c.name)}</option>`).join("");updateSubs()}
 function updateSubs(){let c=data.categories.find(x=>x.name===$("eCategory").value);$("eSubcategory").innerHTML=(c?.subs||[]).map(x=>`<option>${esc(x)}</option>`).join("")}
 $("eCategory").addEventListener("change",updateSubs);
-async function saveExpense(ev){ev.preventDefault();let id=$("expenseId").value;let obj={id:id||Date.now().toString(),date:$("eDate").value,amount:+$("eAmount").value,merchant:$("eMerchant").value.trim(),category:$("eCategory").value,subcategory:$("eSubcategory").value,method:$("eMethod").value,frequency:$("eFrequency").value,status:$("eStatus").value,notes:$("eNotes").value.trim()};if(id){let i=data.expenses.findIndex(x=>x.id===id);data.expenses[i]=obj}else data.expenses.unshift(obj);await save();closeModal("expenseModal");renderAll();toast(id?"Expense updated":"Expense added ✓")}
-async function deleteExpense(id){if(confirm("Delete this expense?")){data.expenses=data.expenses.filter(x=>x.id!==id);await save();renderAll();toast("Expense deleted")}}
+function saveExpense(ev){ev.preventDefault();let id=$("expenseId").value;let obj={id:id||Date.now().toString(),date:$("eDate").value,amount:+$("eAmount").value,merchant:$("eMerchant").value.trim(),category:$("eCategory").value,subcategory:$("eSubcategory").value,method:$("eMethod").value,frequency:$("eFrequency").value,status:$("eStatus").value,notes:$("eNotes").value.trim()};if(id){let i=data.expenses.findIndex(x=>x.id===id);data.expenses[i]=obj}else data.expenses.unshift(obj);save();closeModal("expenseModal");renderAll();toast(id?"Expense updated":"Expense added ✓")}
+function deleteExpense(id){if(confirm("Delete this expense?")){data.expenses=data.expenses.filter(x=>x.id!==id);save();renderAll();toast("Expense deleted")}}
 function openCard(type,id=null){if(appMode!=="admin"){if(!requireAdminForMode())return;}$("cardForm").reset();$("cardId").value=id||"";$("cardType").value=type;$("cardModalTitle").textContent=(id?"Edit ":"Add ")+(type==="credit"?"Credit Card":"Debit Card");if(id){let c=data.cards.find(x=>x.id===id);if(c){$("cName").value=c.name;$("cHolder").value=c.holder||"";$("cNumber").value=c.number;$("cCvv").value=c.cvv||"";$("cExpiry").value=c.expiry;$("cLimit").value=c.limit||""}}$("cardModal").classList.add("show")}
-async function saveCard(ev){ev.preventDefault();let id=$("cardId").value,obj={id:id||Date.now().toString(),type:$("cardType").value,name:$("cName").value.trim(),holder:$("cHolder").value.trim(),number:$("cNumber").value.replace(/\s/g,""),cvv:$("cCvv").value,expiry:$("cExpiry").value,limit:+$("cLimit").value||0};if(id){let i=data.cards.findIndex(x=>x.id===id);data.cards[i]=obj}else data.cards.push(obj);await save();closeModal("cardModal");renderAll();toast(id?"Card updated":"Card added ✓")}
+function saveCard(ev){ev.preventDefault();let id=$("cardId").value,obj={id:id||Date.now().toString(),type:$("cardType").value,name:$("cName").value.trim(),holder:$("cHolder").value.trim(),number:$("cNumber").value.replace(/\s/g,""),cvv:$("cCvv").value,expiry:$("cExpiry").value,limit:+$("cLimit").value||0};if(id){let i=data.cards.findIndex(x=>x.id===id);data.cards[i]=obj}else data.cards.push(obj);save();closeModal("cardModal");renderAll();toast(id?"Card updated":"Card added ✓")}
 function deleteCard(id){if(appMode!=="admin"){if(!requireAdminForMode())return;}if(confirm("Remove this card?")){data.cards=data.cards.filter(x=>x.id!==id);save();renderAll()}}
 function openCategory(){if(appMode!=="admin"){if(!requireAdminForMode())return;}$("categoryModal").classList.add("show")}
-async function saveCategory(ev){ev.preventDefault();let n=$("newCat").value.trim(),s=$("newSubs").value.split(",").map(x=>x.trim()).filter(Boolean);data.categories.push({name:n,emoji:$("newEmoji").value||"✨",subs:s.length?s:["Other"]});await save();closeModal("categoryModal");renderAll();toast("Category added ✓")}
+function saveCategory(ev){ev.preventDefault();let n=$("newCat").value.trim(),s=$("newSubs").value.split(",").map(x=>x.trim()).filter(Boolean);data.categories.push({name:n,emoji:$("newEmoji").value||"✨",subs:s.length?s:["Other"]});save();closeModal("categoryModal");renderAll();toast("Category added ✓")}
 function closeModal(id){$(id).classList.remove("show")}
 
 function renderDashboard(){
@@ -531,47 +366,42 @@ function fillExpenseFilter(){let s=$("expenseCat"),cur=s.value;s.innerHTML='<opt
 function renderAll(){fillExpenseFilter();renderDashboard();renderExpenses();renderCards("credit");renderCards("debit");renderCategories();renderReports()}
 function mask(n){n=String(n||"").replace(/\D/g,"");return n.length>4?"•••• •••• •••• "+n.slice(-4):n}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-async function exportData(){
-  if(!sessionUnlocked||appMode!=="admin"){alert("Admin Mode is required for export.");return;}
-  const row=await getVaultRow();if(!row)return;
-  const backup={format:"NaveenExpenses Cloud Encrypted Backup",version:2,salt:row.salt,vault:row.vault};
+function exportData(){
+  if(appMode!=="admin"){alert("Admin Mode is required for export.");return;}
+  const backup={format:"NaveenExpenses Backup",version:1,exportedAt:new Date().toISOString(),expenses:data.expenses,cards:data.cards,categories:data.categories};
   const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="naveenexpenses-cloud-encrypted-backup.json";a.click();URL.revokeObjectURL(a.href);toast("Encrypted backup exported 🔐");
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="naveenexpenses-backup.json";a.click();URL.revokeObjectURL(a.href);toast("Backup exported");
+}
+function startImport(){
+  if(appMode!=="admin"){if(!requireAdminForMode())return;}
+  $("importFile").click();
 }
 function importData(ev){
-  if(!sessionUnlocked||appMode!=="admin"){alert("Admin Mode is required for import.");return;}
+  if(appMode!=="admin"){alert("Admin Mode is required for import.");ev.target.value="";return;}
   let f=ev.target.files[0];if(!f)return;
   let r=new FileReader();
-  r.onload=async()=>{
+  r.onload=()=>{
     try{
       let x=JSON.parse(r.result);
-      if(x.format!=="NaveenExpenses Cloud Encrypted Backup"||!x.salt||!x.vault)throw Error();
-      let p=prompt("Enter the backup password:");
-      if(!p)return;
-      let result=await decryptBlob(p,b64ToBytes(x.salt),x.vault);
-      if(!result.obj.expenses||!result.obj.cards||!result.obj.categories)throw Error();
-      if(!confirm("Import this backup and replace your current cloud vault?"))return;
-      data=result.obj;vaultKey=result.key;vaultSalt=x.salt;await save();renderAll();toast("Encrypted backup restored ✓");
-    }catch(e){alert("Could not import backup. Check the file and password.")}
+      if(x.format!=="NaveenExpenses Backup"||!Array.isArray(x.expenses)||!Array.isArray(x.cards)||!Array.isArray(x.categories))throw Error();
+      if(!confirm("Import this backup and replace the data saved in this browser?"))return;
+      data={expenses:x.expenses,cards:x.cards,categories:x.categories.length?x.categories:defaultCategories};
+      save();renderAll();toast("Backup restored ✓");
+    }catch(e){alert("Could not import backup. Check that the file is a NaveenExpenses backup.")}
     ev.target.value="";
   };r.readAsText(f)
 }
-async function lockNow(){
-  sessionUnlocked=false;vaultKey=null;detailUnlockUntil=0;closeSensitive();clearInterval(autoLockTimer);
-  if(window.naveenexpensesChannel){sb.removeChannel(window.naveenexpensesChannel);window.naveenexpensesChannel=null;}
-  document.querySelectorAll("input").forEach(i=>{if(i.type==="password")i.value=""});
-  $("lockScreen").style.display="flex";$("authEmail").value=currentUser?.email||"";initCloud();toast("Vault locked");
-}
-async function clearData(){
+function clearData(){
   if(appMode!=="admin"){if(!requireAdminForMode())return;}
-  if(!currentUser)return;
-  if(confirm("This permanently deletes ALL cloud cards, expenses and categories. Continue?")){
-    const {error}=await sb.from("finance_vaults").delete().eq("user_id",currentUser.id);
-    if(error)return alert(error.message);
-    await sb.auth.signOut();location.reload();
+  if(confirm("This permanently deletes all cards, expenses and categories saved in this browser. Continue?")){
+    localStorage.removeItem(STORAGE_KEY);
+    data={expenses:[],cards:[],categories:defaultCategories};
+    renderAll();
+    toast("All local data deleted");
   }
 }
-initCloud();
+load();
+renderAll();
 </script>
 </body>
 </html>
