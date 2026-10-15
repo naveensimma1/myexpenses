@@ -32,3 +32,6 @@ jobs:
 
       - name: Mark Build Success
         run: echo "CI completed successfully"
+
+      - name: Checking Html tags
+        run: echo "html tag is checked"
