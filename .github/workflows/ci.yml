@@ -20,6 +20,12 @@ jobs:
           echo "Lines:"
           wc -l index.html
 
+
+      - name: Show extra stage
+        run: |
+          echo "Lines:"
+          wc -l index.html
+
       - name: Search for HTML Tags
         run: |
           grep -i "<html" index.html
@@ -34,6 +40,3 @@ jobs:
 
       - name: Mark Build Success
         run: echo "CI completed successfully"
-
-      - name: Checking Html tags
-        run: echo "html tag is checked"
